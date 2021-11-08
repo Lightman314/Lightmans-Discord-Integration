@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.github.lightman314.lightmansconsole.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8",
+  "refmap": "lightmansconsole.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

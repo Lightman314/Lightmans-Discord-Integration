@@ -1,0 +1,40 @@
+modLoader="javafml"
+loaderVersion="[35,)"
+license="All rights reserved"
+[[mods]]
+# The modid of the mod
+modId="lightmansconsole"
+version="${file.jarVersion}"
+displayName="Lightmans Console"
+#logoFile="examplemod.png"
+#credits="Thanks for this example mod goes to Java"
+authors="Lightman314"
+description='''
+Allows users to run console commands via discord.
+'''
+
+# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+[[dependencies.lightmansconsole]]
+    modId="forge"
+    mandatory=true
+    versionRange="[35,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.lightmansconsole]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.4,1.17)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.lightmansconsole]]
+    modId="lightmanscurrency"
+    mandatory=false
+    versionRange="[1.16.4-0.8.4.8,)"
+    ordering="AFTER"
+    side="BOTH"
+[[dependencies.lightmansconsole]]
+    modId="blocklog"
+    mandatory=false
+    versionRange="[1.0.0,)"
+    ordering="AFTER"
+    side="BOTH"

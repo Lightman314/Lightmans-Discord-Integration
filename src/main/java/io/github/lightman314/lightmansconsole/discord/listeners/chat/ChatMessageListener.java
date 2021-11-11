@@ -9,6 +9,7 @@ import io.github.lightman314.lightmansconsole.Config;
 import io.github.lightman314.lightmansconsole.LightmansConsole;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -27,10 +28,13 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 public class ChatMessageListener extends SingleChannelListener {
+	
+	public enum ActivityType { DISABLED, LISTENING, PLAYING, WATCHING, COMPETING, STREAMING }
 	
 	private static ChatMessageListener instance = null;
 	private final MinecraftServer server;
@@ -40,8 +44,9 @@ public class ChatMessageListener extends SingleChannelListener {
 		super(channelID, () -> LightmansConsole.PROXY.getJDA());
 		instance = this;
 		this.server = ServerLifecycleHooks.getCurrentServer();
-		this.sendTextMessage("Server has started.");
-		this.updatePlayerCount();
+		this.sendTextMessage("Server is booting.");
+		this.setTopic("Server is booting.");
+		this.setActivityText("Server is booting.");
 	}
 	
 	@Override
@@ -76,7 +81,39 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void updatePlayerCount(boolean shrink)
 	{
 		//Update the channel topic
-		this.setTopic("There are " + (shrink ? getPlayerCount() - 1 : getPlayerCount()) + " players online.");
+		this.setTopic(this.formatPlayerString(Config.SERVER.chatTopic.get(), shrink));
+		//Update the bot's activity
+		this.setActivityText(this.formatPlayerString(Config.SERVER.botActivityText.get(), shrink));
+	}
+	
+	public void setActivityText(String text)
+	{
+		switch(Config.SERVER.botActivityType.get())
+		{
+		case LISTENING:
+			this.getJDA().getPresence().setActivity(Activity.listening(text));
+			break;
+		case PLAYING:
+			this.getJDA().getPresence().setActivity(Activity.playing(text));
+			break;
+		case WATCHING:
+			this.getJDA().getPresence().setActivity(Activity.watching(text));
+			break;
+		case COMPETING:
+			this.getJDA().getPresence().setActivity(Activity.competing(text));
+			break;
+		case STREAMING: //Special youtube link :P
+			this.getJDA().getPresence().setActivity(Activity.streaming(text, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+			break;
+		default:
+			//Do nothing if disabled
+		}
+	}
+	
+	private String formatPlayerString(String format, boolean shrink)
+	{
+		return format.replace("%playerCount%", Integer.toString(shrink ? getPlayerCount() - 1 : getPlayerCount()))
+				.replace("%maxPlayers%", Integer.toString(ServerLifecycleHooks.getCurrentServer().getMaxPlayers()));
 	}
 	
 	private int getPlayerCount()
@@ -128,7 +165,6 @@ public class ChatMessageListener extends SingleChannelListener {
 		}
 	}
 	
-	
 	@SubscribeEvent
 	public void onAchievementGet(AdvancementEvent ev)
 	{
@@ -142,10 +178,18 @@ public class ChatMessageListener extends SingleChannelListener {
 	}
 	
 	@SubscribeEvent
+	public void onServerReady(FMLServerStartedEvent event)
+	{
+		this.sendTextMessage("Server is ready for players!");
+		this.updatePlayerCount();
+	}
+	
+	@SubscribeEvent
 	public void onServerStop(FMLServerStoppingEvent event)
 	{
 		this.sendTextMessage("Server has stopped.");
 		this.setTopic("Server is offline.");
+		this.setActivityText("Server is offline.");
 	}
 	
 	public ITextComponent formatDiscordMessage(Member member, Message message)

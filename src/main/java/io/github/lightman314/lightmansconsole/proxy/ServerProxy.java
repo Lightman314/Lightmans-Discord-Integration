@@ -9,7 +9,6 @@ import io.github.lightman314.lightmansconsole.Config;
 import io.github.lightman314.lightmansconsole.LightmansConsole;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -42,7 +41,6 @@ public class ServerProxy extends Proxy{
     	builder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.GUILD_EMOJIS);
     	builder.setMemberCachePolicy(MemberCachePolicy.ALL);
     	builder.setChunkingFilter(ChunkingFilter.ALL);
-    	builder.setActivity(Activity.playing("Minecraft"));
     	jda = builder.build();
     	
     	//Add the pending listeners

@@ -7,6 +7,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableList;
 
+import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener;
+import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener.ActivityType;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class Config {
@@ -15,6 +17,9 @@ public class Config {
 	{
 		
 		public final ForgeConfigSpec.ConfigValue<String> botToken;
+		public final ForgeConfigSpec.EnumValue<ChatMessageListener.ActivityType> botActivityType;
+		public final ForgeConfigSpec.ConfigValue<String> botActivityText;
+		
 		//Console Config
 		public final ForgeConfigSpec.ConfigValue<String> consoleChannel;
 		public final ForgeConfigSpec.ConfigValue<String> consoleCommandPrefix;
@@ -24,6 +29,7 @@ public class Config {
 		public final ForgeConfigSpec.ConfigValue<String> chatMinecraftPrefix;
 		public final ForgeConfigSpec.ConfigValue<String> chatMinecraftPostfix;
 		public final ForgeConfigSpec.BooleanValue chatAllowPingEveryone;
+		public final ForgeConfigSpec.ConfigValue<String> chatTopic;
 		//Account Configs
 		//public final ForgeConfigSpec.ConfigValue<String> accountChannel;
 		//public final ForgeConfigSpec.ConfigValue<String> accountAdminChannel;
@@ -45,6 +51,12 @@ public class Config {
 			this.botToken = builder
 					.comment("The discord bots token.")
 					.define("token", "<EMPTY>");
+			this.botActivityType = builder
+					.comment("The bots activity type.")
+					.defineEnum("activityType", ActivityType.STREAMING);
+			this.botActivityText = builder
+					.comment("The bots activity text.","%playerCount%: Online Player Count","%maxPlayers%: Maximum allowed players.")
+					.define("activityText", "%playerCount% players online");
 			
 			//Chat Bot Settings
 			builder.comment("Chat Formatting Settings").push("chat");
@@ -64,6 +76,9 @@ public class Config {
 			this.chatAllowPingEveryone = builder
 					.comment("Whether minecraft players can ping @everyone in their chat messages.")
 					.define("ping_everyone", false);
+			this.chatTopic = builder
+					.comment("The format of the chat topic.","%playerCount%: Online Player Count","%maxPlayers%: Maximum allowed players.")
+					.define("channel_topic", "There are %playerCount% players online.");
 			
 			builder.pop();
 			

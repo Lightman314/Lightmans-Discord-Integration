@@ -22,6 +22,7 @@ import io.github.lightman314.lightmanscurrency.common.universal_traders.TradingO
 import io.github.lightman314.lightmanscurrency.common.universal_traders.data.UniversalItemTraderData;
 import io.github.lightman314.lightmanscurrency.events.TradeEvent.PostTradeEvent;
 import io.github.lightman314.lightmanscurrency.events.UniversalTraderEvent.UniversalTradeCreateEvent;
+import io.github.lightman314.lightmanscurrency.trader.IItemTrader;
 import io.github.lightman314.lightmanscurrency.trader.tradedata.ItemTradeData;
 import io.github.lightman314.lightmanscurrency.trader.tradedata.ItemTradeData.ItemTradeType;
 import net.dv8tion.jda.api.entities.Message;
@@ -29,10 +30,10 @@ import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 
 public class CurrencyListener extends SingleChannelListener{
 	
@@ -117,6 +118,7 @@ public class CurrencyListener extends SingleChannelListener{
 				AtomicReference<String> searchText = new AtomicReference<>("");
 				AtomicBoolean findSales = new AtomicBoolean(false);
 				AtomicBoolean findPurchases = new AtomicBoolean(false);
+				AtomicBoolean findBarters = new AtomicBoolean(false);
 				AtomicBoolean findOwners = new AtomicBoolean(false);
 				AtomicBoolean findTraders = new AtomicBoolean(false);
 				if(subcommand.startsWith("sales"))
@@ -128,6 +130,12 @@ public class CurrencyListener extends SingleChannelListener{
 				else if(subcommand.startsWith("purchases"))
 				{
 					findSales.set(false);
+					if(subcommand.length() > 10)
+						searchText.set(subcommand.substring(10).toLowerCase());
+				}
+				else if(subcommand.startsWith("barters"))
+				{
+					findBarters.set(true);
 					if(subcommand.length() > 10)
 						searchText.set(subcommand.substring(10).toLowerCase());
 				}
@@ -148,6 +156,7 @@ public class CurrencyListener extends SingleChannelListener{
 					//All
 					findSales.set(true);
 					findPurchases.set(true);
+					findBarters.set(true);
 					//findOwners.set(true);
 					//findTraders.set(true);
 					if(subcommand.length() > 4)
@@ -173,7 +182,7 @@ public class CurrencyListener extends SingleChannelListener{
 									}
 									ItemStack sellItem = trade.getSellItem();
 									String itemName = getItemName(sellItem, trade.getTradeType() == ItemTradeType.SALE ? trade.getCustomName() : "");
-									String priceText = trade.isFree() ? "free" : trade.getCost().getString();
+									String priceText = trade.getCost().getString();
 									output.add(sellItem.getCount() + "x " + itemName + " for " + priceText);
 								}
 							});
@@ -183,7 +192,7 @@ public class CurrencyListener extends SingleChannelListener{
 							itemTrader.getAllTrades().forEach(trade ->{
 								if(trade.isValid())
 								{
-									if(trade.getTradeType() == ItemTradeType.SALE && findSales.get())
+									if(trade.isSale() && findSales.get())
 									{
 										ItemStack sellItem = trade.getSellItem();
 										String itemName = getItemName(sellItem, trade.getCustomName());
@@ -192,11 +201,11 @@ public class CurrencyListener extends SingleChannelListener{
 										if(searchText.get().isEmpty() || itemName.toString().toLowerCase().contains(searchText.get()))
 										{
 											//Passed the search
-											String priceText = trade.isFree() ? "free" : trade.getCost().getString();
+											String priceText = trade.getCost().getString();
 											output.add(itemTrader.getOwnerName() + " is selling " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
 										}
 									}
-									else if(trade.getTradeType() == ItemTradeType.PURCHASE && findPurchases.get())
+									else if(trade.isPurchase() && findPurchases.get())
 									{
 										ItemStack sellItem = trade.getSellItem();
 										String itemName = getItemName(sellItem, "");
@@ -205,9 +214,23 @@ public class CurrencyListener extends SingleChannelListener{
 										if(searchText.get().isEmpty() || itemName.toLowerCase().contains(searchText.get()))
 										{
 											//Passed the search
-											String priceText = trade.isFree() ? "free" : trade.getCost().getString();
+											String priceText = trade.getCost().getString();
 											output.add(itemTrader.getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName.toString() + " at " + itemTrader.getName().getString() + " for " + priceText);
 										}
+									}
+									else if(trade.isBarter() && findBarters.get())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String sellItemName = getItemName(sellItem,trade.getCustomName());
+										ItemStack barterItem = trade.getBarterItem();
+										String barterItemName = getItemName(barterItem,"");
+										
+										if(searchText.get().isEmpty() || sellItemName.toLowerCase().contains(searchText.get()) || barterItemName.toLowerCase().contains(searchText.get()))
+										{
+											//Passed the search
+											output.add(itemTrader.getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
+										}
+										
 									}
 								}
 							});
@@ -236,11 +259,11 @@ public class CurrencyListener extends SingleChannelListener{
 		EnchantmentHelper.getEnchantments(item).forEach((enchantment, level) ->{
 			if(firstEnchantment.get())
 			{
-				itemName.append(" [").append(enchantment.getDisplayName(level).getString());
+				itemName.append(" [").append(enchantment.getFullname(level).getString());
 				firstEnchantment.set(false);
 			}
 			else
-				itemName.append(", ").append(enchantment.getDisplayName(level).getString());
+				itemName.append(", ").append(enchantment.getFullname(level).getString());
 		});
 		if(!firstEnchantment.get()) //If an enchantment was gotten, append the end
 			itemName.append("]");
@@ -264,7 +287,6 @@ public class CurrencyListener extends SingleChannelListener{
 					//Customer name
 					message.append(event.getPlayer().getName().getString());
 					//Action (bought, sold, ???)
-					boolean isBarter = itemTrade.getTradeType() == ItemTradeType.BARTER;
 					switch(itemTrade.getTradeType())
 					{
 					case SALE: message.append(" bought "); break;
@@ -272,7 +294,7 @@ public class CurrencyListener extends SingleChannelListener{
 					case BARTER: message.append( "bartered "); break;
 						default: message.append(" ??? ");
 					}
-					if(isBarter)
+					if(itemTrade.isBarter())
 					{
 						//Item given
 						ItemStack barteredItem = itemTrade.getBarterItem();
@@ -290,7 +312,7 @@ public class CurrencyListener extends SingleChannelListener{
 						message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
 						//Price
 						message.append(" for ");
-						if(event.getTrade().isFree())
+						if(event.getPricePaid().isFree())
 							message.append("free");
 						else
 							message.append(event.getPricePaid().getString());
@@ -303,7 +325,6 @@ public class CurrencyListener extends SingleChannelListener{
 					this.addPendingMessage(linkedUser, message.toString());
 					//MessageUtil.sendPrivateMessage(linkedUser, message.toString());
 					
-					/* Temporarily removed until LC is updated
 					//Check if out of stock
 					if(event.getTrader() instanceof IItemTrader)
 					{
@@ -313,7 +334,6 @@ public class CurrencyListener extends SingleChannelListener{
 							//MessageUtil.sendPrivateMessage(linkedUser, "**This trade is now out of stock!**");
 						}
 					}
-					*/
 				}
 			}
 		}
@@ -354,7 +374,7 @@ public class CurrencyListener extends SingleChannelListener{
 	}
 	
 	@SubscribeEvent
-	public void onServerStop(FMLServerStoppingEvent event)
+	public void onServerStop(ServerStoppingEvent event)
 	{
 		//Cancel the timer
 		this.timer.cancel();

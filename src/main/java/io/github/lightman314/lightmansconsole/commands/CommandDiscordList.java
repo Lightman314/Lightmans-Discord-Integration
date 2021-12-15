@@ -11,36 +11,36 @@ import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PartialLinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PendingLink;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.TextComponent;
 
 public class CommandDiscordList {
 	
-	public static void register(CommandDispatcher<CommandSource> dispatcher)
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
-		LiteralArgumentBuilder<CommandSource> discordLinkCommand
+		LiteralArgumentBuilder<CommandSourceStack> discordLinkCommand
 			= Commands.literal("discordlist")
-				.requires((commandSource) -> commandSource.hasPermissionLevel(2))
+				.requires((commandSource) -> commandSource.hasPermission(2))
 				.executes(CommandDiscordList::listLinks);
 		
 		dispatcher.register(discordLinkCommand);
 	}
 	
-	static int listLinks(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{
+	static int listLinks(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException{
 		
-		CommandSource source = commandContext.getSource();
+		CommandSourceStack source = commandContext.getSource();
 		//List linked accounts
 		List<LinkedAccount> a = AccountManager.getLinkedAccounts();
-		source.sendFeedback(new StringTextComponent("--------Linked Accounts--------"), false);
-		a.forEach(account-> source.sendFeedback(new StringTextComponent("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
+		source.sendSuccess(new TextComponent("--------Linked Accounts--------"), false);
+		a.forEach(account-> source.sendSuccess(new TextComponent("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
 		//List partially linked accounts as though they were normal linked accounts
 		List<PartialLinkedAccount> part = AccountManager.getPartiallyLinkedAccounts();
-		part.forEach(account -> source.sendFeedback(new StringTextComponent("DiscordID: " + account.discordID + "; PlayerName: " + account.playerName), false));
+		part.forEach(account -> source.sendSuccess(new TextComponent("DiscordID: " + account.discordID + "; PlayerName: " + account.playerName), false));
 		//List pending links
 		List<PendingLink> pend = AccountManager.getPendingLinks();
-		source.sendFeedback(new StringTextComponent("--------Pending Links--------"), false);
-		pend.forEach(account -> source.sendFeedback(new StringTextComponent("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
+		source.sendSuccess(new TextComponent("--------Pending Links--------"), false);
+		pend.forEach(account -> source.sendSuccess(new TextComponent("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
 		
 		return 1;
 		

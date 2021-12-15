@@ -10,21 +10,20 @@ import io.github.lightman314.lightmansconsole.Config;
 import io.github.lightman314.lightmansconsole.LightmansConsole;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.ICommandSource;
-import net.minecraft.entity.Entity;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
-public class ConsoleMessageListener extends SingleChannelListener implements ICommandSource{
+public class ConsoleMessageListener extends SingleChannelListener implements CommandSource{
 
 	MinecraftServer server = null;
-	CommandSource commandSource = null;
+	CommandSourceStack commandSource = null;
 	List<String> output = new ArrayList<>();
 	
 	
@@ -56,36 +55,35 @@ public class ConsoleMessageListener extends SingleChannelListener implements ICo
 			else
 			{
 				this.output.clear();
-				server.getCommandManager().handleCommand(commandSource, command);
+				server.getCommands().performCommand(commandSource, command);
 				this.sendTextMessage(this.output);
 			}
 		}
 	}
 	
-	private CommandSource getCommandSource()
+	private CommandSourceStack getCommandSource()
 	{
-		ServerWorld world = server.func_241755_D_();
-		return new CommandSource(this, world == null ? Vector3d.ZERO : Vector3d.copy(world.getSpawnPoint()), Vector2f.ZERO, world, 4, "ConsoleBot", new StringTextComponent("ConsoleBot"), server, (Entity)null);
+		ServerLevel world = server.overworld();
+		return new CommandSourceStack(this, world == null ? Vec3.ZERO : Vec3.atBottomCenterOf(world.getSharedSpawnPos()), Vec2.ZERO, world, 4, "ConsoleBot", new TextComponent("ConsoleBot"), server, null);
 	}
 
 	@Override
-	public void sendMessage(ITextComponent component, UUID senderUUID) {
+	public void sendMessage(Component component, UUID senderUUID) {
 		this.output.add(component.getString());
-		//LightmansConsole.LOGGER.info("Added '" + component.getString() + "' to the output list.");
 	}
 
 	@Override
-	public boolean shouldReceiveFeedback() {
+	public boolean acceptsSuccess() {
 		return true;
 	}
 
 	@Override
-	public boolean shouldReceiveErrors() {
+	public boolean acceptsFailure() {
 		return true;
 	}
 
 	@Override
-	public boolean allowLogging() {
+	public boolean shouldInformAdmins() {
 		return true;
 	}
 	

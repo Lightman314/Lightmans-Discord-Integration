@@ -20,28 +20,27 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.ICommandSource;
-import net.minecraft.entity.Entity;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 @Mod.EventBusSubscriber
-public class AccountMessageListener extends ListenerAdapter implements ICommandSource{
+public class AccountMessageListener extends ListenerAdapter implements CommandSource{
 	
 	private final List<AccountCommand> REGISTERED_COMMANDS = new ArrayList<>();
 	
 	static List<String> commandOutput = new ArrayList<>();
 	MinecraftServer server;
-	static CommandSource commandSource;
+	static CommandSourceStack commandSource;
 	
 	Supplier<JDA> jdaSource;
 	public JDA getJDA() { return this.jdaSource.get(); }
@@ -102,7 +101,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 					if(Config.SERVER.accountWhitelist.get())
 					{
 						MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-						server.getCommandManager().handleCommand(commandSource, "whitelist add " + playerName);
+						server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
 						MessageUtil.sendTextMessage(event.getTextChannel(), commandOutput);
 						commandOutput.clear();
 					}
@@ -227,10 +226,10 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 		return false;
 	}
 	
-	private CommandSource getCommandSource()
+	private CommandSourceStack getCommandSource()
 	{
-		ServerWorld world = server.func_241755_D_();
-		return new CommandSource(this, world == null ? Vector3d.ZERO : Vector3d.copy(world.getSpawnPoint()), Vector2f.ZERO, world, 4, "AccountBot", new StringTextComponent("AccountBot"), server, (Entity)null);
+		ServerLevel level = server.overworld();
+		return new CommandSourceStack(this, level == null ? Vec3.ZERO : Vec3.atBottomCenterOf(level.getSharedSpawnPos()), Vec2.ZERO, level, 4, "AccountBot", new TextComponent("AccountBot"), server, null);
 	}
 	
 	public void registerCommand(AccountCommand command)
@@ -239,10 +238,10 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 			this.REGISTERED_COMMANDS.add(command);
 	}
 	
-	public boolean allowLogging() { return true; }
-	public boolean shouldReceiveErrors() { return true; }
-	public boolean shouldReceiveFeedback() { return true; }
-	public void sendMessage(ITextComponent component, UUID sender)
+	public boolean shouldInformAdmins() { return true; }
+	public boolean acceptsFailure() { return true; }
+	public boolean acceptsSuccess() { return true; }
+	public void sendMessage(Component component, UUID sender)
 	{
 		commandOutput.add(component.getString());
 	}

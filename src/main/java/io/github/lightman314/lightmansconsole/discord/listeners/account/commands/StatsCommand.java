@@ -14,13 +14,14 @@ import io.github.lightman314.lightmansconsole.util.MemberUtil;
 import io.github.lightman314.lightmansconsole.util.PlayerUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.stats.ServerStatisticsManager;
+import net.minecraft.stats.ServerStatsCounter;
 import net.minecraft.stats.Stat;
+import net.minecraft.world.entity.Entity.RemovalReason;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 public class StatsCommand extends AccountCommand{
 	
@@ -90,9 +91,9 @@ public class StatsCommand extends AccountCommand{
 		GameProfile profile = PlayerUtil.playerProfile(playerId);
 		if(profile != null && server != null)
 		{
-			PlayerEntity fakePlayer = new FakePlayer(server.func_241755_D_(), profile);
-			fakePlayer.remove();
-			ServerStatisticsManager statsManager = server.getPlayerList().getPlayerStats(fakePlayer);
+			Player fakePlayer = new FakePlayer(server.overworld(), profile);
+			fakePlayer.remove(RemovalReason.DISCARDED);
+			ServerStatsCounter statsManager = server.getPlayerList().getPlayerStats(fakePlayer);
 			AtomicReference<String> typeName = new AtomicReference<>(type.toLowerCase());
 			if(statsManager != null)
 			{

@@ -8,18 +8,18 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PartialLinkedAccount;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.MessageArgument;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.MessageArgument;
+import net.minecraft.network.chat.TextComponent;
 
 public class CommandDiscordUnlinkOther {
 
-	public static void register(CommandDispatcher<CommandSource> dispatcher)
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
-		LiteralArgumentBuilder<CommandSource> discordLinkCommand
+		LiteralArgumentBuilder<CommandSourceStack> discordLinkCommand
 			= Commands.literal("unlinkdiscordadmin")
-				.requires((commandSource) -> commandSource.hasPermissionLevel(2))
+				.requires((commandSource) -> commandSource.hasPermission(2))
 						.then(Commands.argument("playerName", MessageArgument.message())
 								.executes(CommandDiscordUnlinkOther::unlinkPlayerName)
 				);
@@ -27,35 +27,14 @@ public class CommandDiscordUnlinkOther {
 		dispatcher.register(discordLinkCommand);
 	}
 	
-	/*static int unlinkPlayer(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{
-		
-		PlayerEntity player = EntityArgument.getPlayer(commandContext, "player");
-		if(player == null)
-		{
-			commandContext.getSource().sendErrorMessage(new StringTextComponent("Not a valid player."));
-		}
-		LinkedAccount account = AccountManager.getLinkedAccountFromPlayer(player);
-		if(account != null)
-		{
-			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendFeedback(new StringTextComponent(player.getName().getString() + " is no longer linked to their discord account."), true);
-			return 1;
-		}
-		else
-		{
-			commandContext.getSource().sendErrorMessage(new StringTextComponent("Their account is not linked to a discord account."));
-		}
-		return 0;
-	}*/
-	
-	static int unlinkPlayerName(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{
+	static int unlinkPlayerName(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException{
 		
 		String playerName = MessageArgument.getMessage(commandContext, "playerName").getString();
 		LinkedAccount account = AccountManager.getLinkedAccountFromMinecraftName(playerName);
 		if(account != null)
 		{
 			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendFeedback(new StringTextComponent(playerName + " is no longer linked to their discord account."), true);
+			commandContext.getSource().sendSuccess(new TextComponent(playerName + " is no longer linked to their discord account."), true);
 			return 1;
 		}
 		PartialLinkedAccount partialAccount = AccountManager.getPartialLinkedAccountFromPlayerName(playerName);
@@ -63,12 +42,12 @@ public class CommandDiscordUnlinkOther {
 		{
 			AccountManager.getPartiallyLinkedAccounts().remove(partialAccount);
 			AccountManager.markAsDirty();
-			commandContext.getSource().sendFeedback(new StringTextComponent(playerName + " is no longer linked to their discord account."), true);
+			commandContext.getSource().sendSuccess(new TextComponent(playerName + " is no longer linked to their discord account."), true);
 			return 1;
 		}
 		else
 		{
-			commandContext.getSource().sendErrorMessage(new StringTextComponent("Their account is not linked to a discord account."));
+			commandContext.getSource().sendFailure(new TextComponent("Their account is not linked to a discord account."));
 		}
 		return 0;
 	}

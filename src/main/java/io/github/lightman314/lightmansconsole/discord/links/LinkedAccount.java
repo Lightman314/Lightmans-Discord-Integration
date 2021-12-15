@@ -3,7 +3,7 @@ package io.github.lightman314.lightmansconsole.discord.links;
 import java.util.UUID;
 
 import io.github.lightman314.lightmansconsole.util.PlayerUtil;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 
 public class LinkedAccount {
 
@@ -16,8 +16,8 @@ public class LinkedAccount {
 		this.discordID = discordID;
 	}
 
-	public boolean equalsPlayer(PlayerEntity player) {
-		return player.getUniqueID().equals(this.playerID);
+	public boolean equalsPlayer(Player player) {
+		return player.getUUID().equals(this.playerID);
 	}
 	
 	public boolean equalsPlayerName(String playerName)

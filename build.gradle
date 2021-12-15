@@ -1,44 +1,49 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        maven { url = 'https://repo.spongepowered.org/maven' }
+        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
+        maven { url = 'https://maven.minecraftforge.net' }
         jcenter()
         mavenCentral()
+        repositories {
+            maven {
+                url "https://plugins.gradle.org/m2/"
+            }
+        }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-        //classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
-        classpath "com.github.jengelman.gradle.plugins:shadow:4.0.4"
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        //classpath "com.github.jengelman.gradle.plugins:shadow:7.0.0"
     }
+}
+plugins {
+	id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 apply plugin: 'net.minecraftforge.gradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-//apply plugin: 'org.spongepowered.mixin'
-apply plugin: 'com.github.johnrengelman.shadow'
+//apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.16.4-0.0.1.1'
+version = '1.18-0.0.1.2'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansconsole'
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+// Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 minecraft {
 
-    mappings channel: 'snapshot', version: '20201028-1.16.3'
+    mappings channel: 'official', version: '1.18'
 
     runs {
     
         server {
             workingDirectory project.file('run')
 
-			//property 'mixin.env.disableRefMap', 'true'
             // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.markers', 'REGISTRIES'
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
-            //arg '-mixin.config=lightmansconsole.mixins.json'
 
             mods {
                 lightmansconsole {
@@ -70,33 +75,34 @@ reobf {
 shadowJar {
     classifier = 'server'
     configurations = [project.configurations.embed]
-    relocate 'okhttp3', 'shadow.okhttp'
-    relocate 'okio', 'shadow.okio'
-    relocate 'club.minnced', 'shadow.club.minnced'
-    relocate 'com.sun', 'shadow.com.sun'
-    relocate 'com.iwebpp', 'shadow.com.iwebpp'
-    relocate 'com.google.gson', 'shadow.com.google.gson'
-    relocate 'com.neovisionaries', 'shadow.com.neovisionaries'
-    relocate 'gnu', 'shadow.gnu'
-    relocate 'org.apache.commons.collections4', 'shadow.org.apache.commons.collections4'
-    //relocate('org.apache.commons.lang3', 'shadow.org.apache.commons.lang3')
-    relocate 'org.json', 'shadow.org.json'
-    relocate 'org.intellij', 'shadow.org.intellij'
-    relocate 'org.jetbrains', 'shadow.org.jetbrains'
-    relocate 'tomp2p', 'shadow.tomp2p'
-    relocate 'com.fasterxml', 'shadow.com.fasterxml'
-    relocate 'dev.vankka', 'shadow.dev.vankka'
-    relocate 'net.kyori', 'shadow.net.kyori'
-    relocate 'org.checkerframework', 'shadow.org.checkerframework'
-    relocate "com.moandjiezana", "shadow.com.moandjiezana"
-    relocate "ch.lambdaj", "shadow.ch.lambdaj"
-    relocate "emoji4j", "shadow.emoji4j"
-    relocate "javax.annotation", "shadow.javax.annotation"
-    relocate "net.sf", "shadow.net.sf"
-    relocate "org.hamcrest", "shadow.org.hamcrest"
-    relocate "org.objenesis", "shadow.org.objenesis"
-    relocate "kotlin", "shadow.kotlin"
-    relocate "com.vdurmont", "shadow.com.vdurmont"
+    relocate 'org.slf4j', 'shadow.org.slf4j'
+    relocate 'okhttp3', 'dcshadow.okhttp'
+    relocate 'okio', 'dcshadow.okio'
+    relocate 'club.minnced', 'dcshadow.club.minnced'
+    relocate 'com.sun', 'dcshadow.com.sun'
+    relocate 'com.iwebpp', 'dcshadow.com.iwebpp'
+    relocate 'com.google.gson', 'dcshadow.com.google.gson'
+    relocate 'com.neovisionaries', 'dcshadow.com.neovisionaries'
+    relocate 'gnu', 'dcshadow.gnu'
+    relocate 'org.apache.commons.collections4', 'dcshadow.org.apache.commons.collections4'
+    relocate('org.apache.commons.lang3', 'dcshadow.org.apache.commons.lang3')
+    relocate 'org.json', 'dcshadow.org.json'
+    relocate 'org.intellij', 'dcshadow.org.intellij'
+    relocate 'org.jetbrains', 'dcshadow.org.jetbrains'
+    relocate 'tomp2p', 'dcshadow.tomp2p'
+    relocate 'com.fasterxml', 'dcshadow.com.fasterxml'
+    relocate 'dev.vankka', 'dcshadow.dev.vankka'
+    relocate 'net.kyori', 'dcshadow.net.kyori'
+    relocate 'org.checkerframework', 'dcshadow.org.checkerframework'
+    relocate "com.moandjiezana", "dcshadow.com.moandjiezana"
+    relocate "ch.lambdaj", "dcshadow.ch.lambdaj"
+    relocate "emoji4j", "dcshadow.emoji4j"
+    relocate "javax.annotation", "dcshadow.javax.annotation"
+    relocate "net.sf", "dcshadow.net.sf"
+    relocate "org.hamcrest", "dcshadow.org.hamcrest"
+    relocate "org.objenesis", "dcshadow.org.objenesis"
+    relocate "kotlin", "dcshadow.kotlin"
+    relocate "com.vdurmont", "dcshadow.com.vdurmont"
 }
 
 artifacts {
@@ -115,23 +121,19 @@ repositories {
 
 dependencies {
 
-    minecraft 'net.minecraftforge:forge:1.16.4-35.1.37'
+    minecraft 'net.minecraftforge:forge:1.18.1-39.0.0'
 
 	//Discord libraries
-    embed("net.dv8tion:JDA:4.3.0_315") {
+    embed("net.dv8tion:JDA:4.4.0_351") {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compile fg.deobf('curse.maven:lightmans-currency-472521:3505942')
+    compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3566714')
 
     //Apache commons lang3
     embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 	
 }
-
-//mixin {
-//   add sourceSets.main, 'mixins.lightmansconsole.refmap.json'
-//}
 
 tasks.build.dependsOn(tasks.shadowJar)
 
@@ -147,8 +149,7 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"lightman314",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")//,
-            //"MixinConfigs": "lightmansconsole.mixins.json"
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }

@@ -6,6 +6,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import javax.security.auth.login.LoginException;
@@ -48,7 +49,7 @@ public class LightmansConsole
     }
     
     //Load the JDA after the config is loaded, to assure that we load the correct values
-    public void onConfigLoad(ModConfig.Loading event) {
+    public void onConfigLoad(ModConfigEvent.Loading event) {
     	
     	if(event.getConfig().getModId().equals(MODID) && event.getConfig().getSpec() == Config.serverSpec)
     	{

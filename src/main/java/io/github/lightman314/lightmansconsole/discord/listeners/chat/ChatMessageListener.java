@@ -2,6 +2,7 @@ package io.github.lightman314.lightmansconsole.discord.listeners.chat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
@@ -13,24 +14,24 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.text.Color;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.AdvancementEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 public class ChatMessageListener extends SingleChannelListener {
 	
@@ -38,6 +39,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	private static ChatMessageListener instance = null;
 	private final MinecraftServer server;
+	private final UUID senderID = new UUID(0,0);
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
@@ -57,10 +59,10 @@ public class ChatMessageListener extends SingleChannelListener {
 		if(event.getMessage().getContentRaw().startsWith("/list"))
 		{
 			List<String> output = new ArrayList<>();
-			List<ServerPlayerEntity> playerList = getPlayerList();
+			List<ServerPlayer> playerList = getPlayerList();
 			output.add("There are " + getPlayerCount() + " players online.");
 			String playerText = "";
-			for(ServerPlayerEntity player : playerList)
+			for(ServerPlayer player : playerList)
 			{
 				if(playerText != "")
 					playerText += ", ";
@@ -71,8 +73,8 @@ public class ChatMessageListener extends SingleChannelListener {
 			this.sendTextMessage(output);
 			return;
 		}
-		ITextComponent message = formatDiscordMessage(event.getMember(), event.getMessage());
-		server.getPlayerList().getPlayers().forEach(player -> player.sendStatusMessage(message, false));
+		Component message = formatDiscordMessage(event.getMember(), event.getMessage());
+		server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
 		LightmansConsole.LOGGER.info(message.getString());
 	}
 	
@@ -118,10 +120,10 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	private int getPlayerCount()
 	{
-		return ServerLifecycleHooks.getCurrentServer().getCurrentPlayerCount();
+		return ServerLifecycleHooks.getCurrentServer().getPlayerCount();
 	}
 	
-	private List<ServerPlayerEntity> getPlayerList()
+	private List<ServerPlayer> getPlayerList()
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		return server.getPlayerList().getPlayers();
@@ -140,7 +142,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		if(instance != null)
 		{
-			instance.sendTextMessage(new TranslationTextComponent("multiplayer.player.joined", event.getPlayer().getDisplayName()).getString());
+			instance.sendTextMessage(new TranslatableComponent("multiplayer.player.joined", event.getPlayer().getDisplayName()).getString());
 			instance.updatePlayerCount();
 		}
 	}
@@ -150,7 +152,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		if(instance != null)
 		{
-			instance.sendTextMessage(new TranslationTextComponent("multiplayer.player.left", event.getPlayer().getDisplayName()).getString());
+			instance.sendTextMessage(new TranslatableComponent("multiplayer.player.left", event.getPlayer().getDisplayName()).getString());
 			//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
 			instance.updatePlayerCount(true);
 		}
@@ -159,16 +161,16 @@ public class ChatMessageListener extends SingleChannelListener {
 	@SubscribeEvent
 	public void onPlayerDeath(LivingDeathEvent event)
 	{
-		if(event.getEntity() instanceof PlayerEntity && instance != null)
+		if(event.getEntity() instanceof Player && instance != null)
 		{
-			instance.sendTextMessage(event.getSource().getDeathMessage(event.getEntityLiving()).getString());
+			instance.sendTextMessage(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()).getString());
 		}
 	}
 	
 	@SubscribeEvent
 	public void onAchievementGet(AdvancementEvent ev)
 	{
-		if(instance != null && ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceToChat())
+		if(instance != null && ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat())
 		{
 			List<String> output = new ArrayList<>();
 			output.add(ev.getPlayer().getName().getString() + " hast made the advancement **" + ev.getAdvancement().getDisplay().getTitle().getString() + "**");
@@ -178,35 +180,35 @@ public class ChatMessageListener extends SingleChannelListener {
 	}
 	
 	@SubscribeEvent
-	public void onServerReady(FMLServerStartedEvent event)
+	public void onServerReady(ServerStartedEvent event)
 	{
 		this.sendTextMessage("Server is ready for players!");
 		this.updatePlayerCount();
 	}
 	
 	@SubscribeEvent
-	public void onServerStop(FMLServerStoppingEvent event)
+	public void onServerStop(ServerStoppingEvent event)
 	{
 		this.sendTextMessage("Server has stopped.");
 		this.setTopic("Server is offline.");
 		this.setActivityText("Server is offline.");
 	}
 	
-	public ITextComponent formatDiscordMessage(Member member, Message message)
+	public Component formatDiscordMessage(Member member, Message message)
 	{
-		return new StringTextComponent(Config.SERVER.chatMinecraftPrefix.get())
+		return new TextComponent(Config.SERVER.chatMinecraftPrefix.get())
 				.append(formatMemberName(member))
-				.appendString(Config.SERVER.chatMinecraftPostfix.get())
-				.appendString(" ")
+				.append(Config.SERVER.chatMinecraftPostfix.get())
+				.append(" ")
 				.append(MessageUtil.formatMessageText(message, this.getGuild()));
 	}
 	
-	public static ITextComponent formatMemberName(Member member)
+	public static Component formatMemberName(Member member)
 	{
-		return new StringTextComponent(member.getEffectiveName()).mergeStyle(Style.EMPTY
-				.setColor(Color.fromInt(member.getColorRaw()))
-				.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,"<@!" + member.getId() + ">"))
-				.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new StringTextComponent("Mention")))
+		return new TextComponent(member.getEffectiveName()).withStyle(Style.EMPTY
+				.withColor(TextColor.fromRgb(member.getColorRaw()))
+				.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,"<@!" + member.getId() + ">"))
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Mention")))
 				);
 	}
 	

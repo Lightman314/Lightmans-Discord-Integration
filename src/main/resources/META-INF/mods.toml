@@ -17,24 +17,18 @@ Allows users to run console commands via discord.
 [[dependencies.lightmansconsole]]
     modId="forge"
     mandatory=true
-    versionRange="[35,)"
+    versionRange="[38,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.lightmansconsole]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.4,1.17)"
+    versionRange="[1.18,1.19)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.lightmansconsole]]
     modId="lightmanscurrency"
     mandatory=false
-    versionRange="[1.16.4-0.8.4.8,)"
-    ordering="AFTER"
-    side="BOTH"
-[[dependencies.lightmansconsole]]
-    modId="blocklog"
-    mandatory=false
-    versionRange="[1.0.0,)"
+    versionRange="[1.18-1.0.1.2,)"
     ordering="AFTER"
     side="BOTH"

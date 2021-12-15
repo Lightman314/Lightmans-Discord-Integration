@@ -6,21 +6,21 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.MessageArgument;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.MessageArgument;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.entity.player.Player;
 
 public class CommandDiscordLink {
 
 	public static final String COMMAND_LITERAL = "linkdiscord";
 	
-	public static void register(CommandDispatcher<CommandSource> dispatcher)
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
-		LiteralArgumentBuilder<CommandSource> discordLinkCommand
+		LiteralArgumentBuilder<CommandSourceStack> discordLinkCommand
 			= Commands.literal("linkdiscord")
-				.requires((commandSource) -> commandSource.getEntity() instanceof PlayerEntity)
+				.requires((commandSource) -> commandSource.getEntity() instanceof Player)
 				.then(Commands.argument("linkkey", MessageArgument.message())
 						.executes(CommandDiscordLink::linkPlayer)
 					);
@@ -28,25 +28,25 @@ public class CommandDiscordLink {
 		dispatcher.register(discordLinkCommand);
 	}
 	
-	static int linkPlayer(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{
+	static int linkPlayer(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException{
 		
 		String linkKey = MessageArgument.getMessage(commandContext, "linkkey").getString();
-		CommandSource source = commandContext.getSource();
-		PlayerEntity player = source.asPlayer();
+		CommandSourceStack source = commandContext.getSource();
+		Player player = source.getPlayerOrException();
 		int output = AccountManager.tryLinkUser(player, linkKey);
 		if(output == 1)
 		{
-			source.sendFeedback(new StringTextComponent("You account has been successfully linked to your discord account."), true);
+			source.sendSuccess(new TextComponent("You account has been successfully linked to your discord account."), true);
 			return 1;
 		}
 		else if(output == 0)
 		{
-			source.sendErrorMessage(new StringTextComponent(linkKey + " is not a valid link key."));
+			source.sendFailure(new TextComponent(linkKey + " is not a valid link key."));
 			return 0;
 		}
 		else if(output == -1)
 		{
-			source.sendErrorMessage(new StringTextComponent("Your account is already linked to a discord account."));
+			source.sendFailure(new TextComponent("Your account is already linked to a discord account."));
 			return 0;
 		}
 		return 0;

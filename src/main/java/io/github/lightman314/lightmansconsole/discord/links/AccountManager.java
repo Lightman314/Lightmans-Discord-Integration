@@ -11,22 +11,22 @@ import io.github.lightman314.lightmansconsole.LightmansConsole;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldSavedData;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 @Mod.EventBusSubscriber
-public class AccountManager extends WorldSavedData{
+public class AccountManager extends SavedData{
 
 	private static final String DATA_NAME = LightmansConsole.MODID + "_linked_accounts";
 	
@@ -39,61 +39,60 @@ public class AccountManager extends WorldSavedData{
 	
 	List<String> currencyNotifications = new ArrayList<>();
 	
-	public AccountManager() {
-		super(DATA_NAME);
-	}
+	public AccountManager() { }
+	
+	public AccountManager(CompoundTag tag) { this.load(tag); }
 
 	public static void markAsDirty()
 	{
-		get().markDirty();
+		get().setDirty();
 	}
 	
-	@Override
-	public void read(CompoundNBT compound) {
+	public void load(CompoundTag compound) {
 		
-		if(compound.contains("LinkedAccounts", Constants.NBT.TAG_LIST))
+		if(compound.contains("LinkedAccounts", Tag.TAG_LIST))
 		{
 			this.linkedAccounts.clear();
-			ListNBT accountList = compound.getList("LinkedAccounts", Constants.NBT.TAG_COMPOUND);
+			ListTag accountList = compound.getList("LinkedAccounts", Tag.TAG_COMPOUND);
 			for(int i = 0; i < accountList.size(); i++)
 			{
-				CompoundNBT thisCompound = accountList.getCompound(i);
-				UUID id = thisCompound.getUniqueId("id");
+				CompoundTag thisCompound = accountList.getCompound(i);
+				UUID id = thisCompound.getUUID("id");
 				String discordID = thisCompound.getString("discord");
 				this.linkedAccounts.add(new LinkedAccount(id, discordID));
 			}
 		}
-		if(compound.contains("PendingLinks", Constants.NBT.TAG_LIST))
+		if(compound.contains("PendingLinks", Tag.TAG_LIST))
 		{
 			this.pendingLinks.clear();
-			ListNBT pendingLinkList = compound.getList("PendingLinks", Constants.NBT.TAG_COMPOUND);
+			ListTag pendingLinkList = compound.getList("PendingLinks", Tag.TAG_COMPOUND);
 			for(int i = 0; i < pendingLinkList.size(); i++)
 			{
-				CompoundNBT thisCompound = pendingLinkList.getCompound(i);
+				CompoundTag thisCompound = pendingLinkList.getCompound(i);
 				String id = thisCompound.getString("id");
 				String linkKey = thisCompound.getString("key");
 				this.pendingLinks.add(new PendingLink(linkKey, id));
 			}
 		}
-		if(compound.contains("PartialLinks", Constants.NBT.TAG_LIST))
+		if(compound.contains("PartialLinks", Tag.TAG_LIST))
 		{
 			this.partiallyLinkedAccounts.clear();
-			ListNBT partialLinkList = compound.getList("PartialLinks", Constants.NBT.TAG_COMPOUND);
+			ListTag partialLinkList = compound.getList("PartialLinks", Tag.TAG_COMPOUND);
 			for(int i = 0; i < partialLinkList.size(); i++)
 			{
-				CompoundNBT thisCompound = partialLinkList.getCompound(i);
+				CompoundTag thisCompound = partialLinkList.getCompound(i);
 				String name = thisCompound.getString("name");
 				String id = thisCompound.getString("id");
 				this.partiallyLinkedAccounts.add(new PartialLinkedAccount(name, id));
 			}
 		}
-		if(compound.contains("CurrencyNotifications", Constants.NBT.TAG_LIST))
+		if(compound.contains("CurrencyNotifications", Tag.TAG_LIST))
 		{
 			this.currencyNotifications.clear();
-			ListNBT currencyNotificationList = compound.getList("CurrencyNotifications", Constants.NBT.TAG_COMPOUND);
+			ListTag currencyNotificationList = compound.getList("CurrencyNotifications", Tag.TAG_COMPOUND);
 			for(int i = 0; i < currencyNotificationList.size(); i++)
 			{
-				CompoundNBT thisCompound = currencyNotificationList.getCompound(i);
+				CompoundTag thisCompound = currencyNotificationList.getCompound(i);
 				this.currencyNotifications.add(thisCompound.getString("id"));
 			}
 		}
@@ -102,33 +101,33 @@ public class AccountManager extends WorldSavedData{
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound) {
+	public CompoundTag save(CompoundTag compound) {
 		
-		ListNBT accountList = new ListNBT();
+		ListTag accountList = new ListTag();
 		for(int i = 0; i < linkedAccounts.size(); i++)
 		{
-			CompoundNBT thisCompound = new CompoundNBT();
+			CompoundTag thisCompound = new CompoundTag();
 			LinkedAccount thisAccount = linkedAccounts.get(i);
-			thisCompound.putUniqueId("id", thisAccount.playerID);
+			thisCompound.putUUID("id", thisAccount.playerID);
 			//thisCompound.putString("name", thisAccount.getName());
 			thisCompound.putString("discord", thisAccount.discordID);
 			accountList.add(thisCompound);
 		}
 		compound.put("LinkedAccounts", accountList);
-		ListNBT pendingLinkList = new ListNBT();
+		ListTag pendingLinkList = new ListTag();
 		for(int i = 0; i < this.pendingLinks.size(); i++)
 		{
-			CompoundNBT thisCompound = new CompoundNBT();
+			CompoundTag thisCompound = new CompoundTag();
 			PendingLink thisLink = pendingLinks.get(i);
 			thisCompound.putString("id", thisLink.userID);
 			thisCompound.putString("key", thisLink.linkKey);
 			pendingLinkList.add(thisCompound);
 		}
 		compound.put("PendingLinks", pendingLinkList);
-		ListNBT partialLinkList = new ListNBT();
+		ListTag partialLinkList = new ListTag();
 		for(int i = 0; i < this.partiallyLinkedAccounts.size(); i++)
 		{
-			CompoundNBT thisCompound = new CompoundNBT();
+			CompoundTag thisCompound = new CompoundTag();
 			PartialLinkedAccount thisAccount = partiallyLinkedAccounts.get(i);
 			thisCompound.putString("name", thisAccount.playerName);
 			thisCompound.putString("id", thisAccount.discordID);
@@ -136,10 +135,10 @@ public class AccountManager extends WorldSavedData{
 		}
 		compound.put("PartialLinks", partialLinkList);
 		
-		ListNBT currencyNotificationList = new ListNBT();
+		ListTag currencyNotificationList = new ListTag();
 		for(int i = 0; i < this.currencyNotifications.size(); i++)
 		{
-			CompoundNBT thisCompound = new CompoundNBT();
+			CompoundTag thisCompound = new CompoundTag();
 			thisCompound.putString("id", this.currencyNotifications.get(i));
 			currencyNotificationList.add(thisCompound);
 		}
@@ -189,7 +188,7 @@ public class AccountManager extends WorldSavedData{
 		return getLinkedAccountFromUser(member.getUser());
 	}
 	
-	private LinkedAccount getAccountFromPlayer(PlayerEntity player)
+	private LinkedAccount getAccountFromPlayer(Player player)
 	{
 		for(int i = 0; i < this.linkedAccounts.size(); i++)
 		{
@@ -199,7 +198,7 @@ public class AccountManager extends WorldSavedData{
 		return null;
 	}
 	
-	public static LinkedAccount getLinkedAccountFromPlayer(PlayerEntity player)
+	public static LinkedAccount getLinkedAccountFromPlayer(Player player)
 	{
 		return get().getAccountFromPlayer(player);
 	}
@@ -224,7 +223,7 @@ public class AccountManager extends WorldSavedData{
 		if(this.linkedAccounts.contains(account))
 		{
 			this.linkedAccounts.remove(account);
-			this.markDirty();
+			this.setDirty();
 		}
 	}
 	
@@ -253,7 +252,7 @@ public class AccountManager extends WorldSavedData{
 		if(this.pendingLinks.contains(link))
 		{
 			this.pendingLinks.remove(link);
-			this.markDirty();
+			this.setDirty();
 		}
 	}
 	
@@ -296,8 +295,8 @@ public class AccountManager extends WorldSavedData{
 	private static AccountManager get()
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-		ServerWorld world = server.getWorld(World.OVERWORLD);
-		return world.getSavedData().getOrCreate(AccountManager::new, DATA_NAME);
+		ServerLevel world = server.getLevel(Level.OVERWORLD);
+		return world.getDataStorage().computeIfAbsent((compound) -> new AccountManager(compound), () -> new AccountManager(), DATA_NAME);
 	}
 	
 	/**
@@ -315,7 +314,7 @@ public class AccountManager extends WorldSavedData{
 			return link;
 		link = new PendingLink(user.getId());
 		manager.pendingLinks.add(link);
-		manager.markDirty();
+		manager.setDirty();
 		return link;
 	}
 	
@@ -323,7 +322,7 @@ public class AccountManager extends WorldSavedData{
 	{
 		AccountManager manager = get();
 		manager.removeLinkedAccount(account);
-		manager.markDirty();
+		manager.setDirty();
 	}
 	
 	/**
@@ -331,7 +330,7 @@ public class AccountManager extends WorldSavedData{
 	 * 0: Invalid link key
 	 * -1: Player already linked
 	 */
-	public static int tryLinkUser(PlayerEntity player, String linkKey)
+	public static int tryLinkUser(Player player, String linkKey)
 	{
 		AccountManager manager = get();
 		PendingLink pendingLink = manager.getPendingLinkFromKey(linkKey);
@@ -339,7 +338,7 @@ public class AccountManager extends WorldSavedData{
 			return 0;
 		if(manager.getAccountFromPlayer(player) != null)
 			return -1;
-		LinkedAccount newAccount = new LinkedAccount(player.getUniqueID(), pendingLink.userID);
+		LinkedAccount newAccount = new LinkedAccount(player.getUUID(), pendingLink.userID);
 		manager.removePendingLink(pendingLink);
 		manager.linkedAccounts.add(newAccount);
 		
@@ -361,7 +360,7 @@ public class AccountManager extends WorldSavedData{
 		if(partialLink != null)
 		{
 			manager.partiallyLinkedAccounts.remove(partialLink);
-			manager.markDirty();
+			manager.setDirty();
 			return ImmutableList.of("Your discord account has been successfully unlinked from '" + partialLink.playerName + "'.");
 		}
 		
@@ -398,7 +397,7 @@ public class AccountManager extends WorldSavedData{
 		if(partialLink != null)
 		{
 			manager.partiallyLinkedAccounts.remove(partialLink);
-			manager.markDirty();
+			manager.setDirty();
 			AtomicReference<User> currentLinkedUser = new AtomicReference<>();
 			String currentLinkedDiscordID = partialLink.discordID;
 			jda.getUsers().forEach(u ->{
@@ -437,21 +436,21 @@ public class AccountManager extends WorldSavedData{
 		}
 		
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-		List<ServerPlayerEntity> players = server.getPlayerList().getPlayers();
+		List<ServerPlayer> players = server.getPlayerList().getPlayers();
 		for(int i = 0; i < players.size(); i++)
 		{
 			if(players.get(i).getName().getString().equals(playerName))
 			{
-				LinkedAccount newAccount = new LinkedAccount(players.get(i).getUniqueID(), user.getId());
+				LinkedAccount newAccount = new LinkedAccount(players.get(i).getUUID(), user.getId());
 				manager.linkedAccounts.add(newAccount);
-				manager.markDirty();
+				manager.setDirty();
 				LightmansConsole.LOGGER.info("Linked discord #" + user.getId() + " with '" + playerName + "'");
 				return ImmutableList.of("Successfully linked " + user.getName() + " to '" + playerName +"'");
 			}
 		}
 		PartialLinkedAccount partialLink = new PartialLinkedAccount(playerName, user.getId());
 		manager.partiallyLinkedAccounts.add(partialLink);
-		manager.markDirty();
+		manager.setDirty();
 		LightmansConsole.LOGGER.info("Partially linked discord #" + user.getId() + " with '" + playerName + "'");
 		return ImmutableList.of("Successfully linked " + user.getName() + " to '" + playerName +"'");
 	}
@@ -460,16 +459,16 @@ public class AccountManager extends WorldSavedData{
 	public static void onPlayerLogin(PlayerLoggedInEvent event)
 	{
 		AccountManager manager = get();
-		PlayerEntity player = event.getPlayer();
+		Player player = event.getPlayer();
 		for(int i = 0; i < manager.partiallyLinkedAccounts.size(); i++)
 		{
 			if(manager.partiallyLinkedAccounts.get(i).playerName.equals(player.getName().getString()))
 			{
 				//Finalize the link
-				LinkedAccount newAccount = new LinkedAccount(player.getUniqueID(), manager.partiallyLinkedAccounts.get(i).discordID);
+				LinkedAccount newAccount = new LinkedAccount(player.getUUID(), manager.partiallyLinkedAccounts.get(i).discordID);
 				manager.linkedAccounts.add(newAccount);
 				manager.partiallyLinkedAccounts.remove(i);
-				manager.markDirty();
+				manager.setDirty();
 				LightmansConsole.LOGGER.info("Finalized linking discord #" + newAccount.discordID + " with '" + player.getName().getString() + "'");
 				return;
 			}
@@ -490,7 +489,7 @@ public class AccountManager extends WorldSavedData{
 		if(!currencyNotifications.contains(user.getId()))
 		{
 			currencyNotifications.add(user.getId());
-			get().markDirty();
+			get().setDirty();
 			return true;
 		}
 		return false;
@@ -502,7 +501,7 @@ public class AccountManager extends WorldSavedData{
 		if(currencyNotifications.contains(user.getId()))
 		{
 			currencyNotifications.remove(user.getId());
-			get().markDirty();
+			get().setDirty();
 			return true;
 		}
 		return false;

@@ -78,7 +78,7 @@ public class CurrencyListener extends SingleChannelListener{
 			{
 				List<String> output = new ArrayList<>();
 				output.add(prefix + "notifications <help|enable|disable> - Handle private currency notifications.");
-				output.add(prefix + "search <sales|purchases|all> [searchText] - List all universal trades selling items containing the searchText. Leave searchText empty to see all sales/purchases.");
+				output.add(prefix + "search <sales|purchases|barters|all> [searchText] - List all universal trades selling items containing the searchText. Leave searchText empty to see all sales/purchases.");
 				output.add(prefix + "search <players|shops> [searchText] - List all trades for universal traders with player/shop names containing the searchText. Leave searchText empty to see all traders trades.");
 				MessageUtil.sendTextMessage(channel, output);
 			}
@@ -129,7 +129,7 @@ public class CurrencyListener extends SingleChannelListener{
 				}
 				else if(subcommand.startsWith("purchases"))
 				{
-					findSales.set(false);
+					findPurchases.set(true);
 					if(subcommand.length() > 10)
 						searchText.set(subcommand.substring(10).toLowerCase());
 				}
@@ -177,13 +177,31 @@ public class CurrencyListener extends SingleChannelListener{
 								{
 									if(firstTrade.get())
 									{
-										output.add("--" + itemTrader.getOwnerName() + "'s **" + itemTrader.getName().getString() + "** is selling:");
+										output.add("--" + itemTrader.getOwnerName() + "'s **" + itemTrader.getName().getString() + "**--");
 										firstTrade.set(false);
 									}
-									ItemStack sellItem = trade.getSellItem();
-									String itemName = getItemName(sellItem, trade.getTradeType() == ItemTradeType.SALE ? trade.getCustomName() : "");
-									String priceText = trade.getCost().getString();
-									output.add(sellItem.getCount() + "x " + itemName + " for " + priceText);
+									if(trade.isSale())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String itemName = getItemName(sellItem, trade.getCustomName());
+										String priceText = trade.getCost().getString();
+										output.add("Selling " + sellItem.getCount() + "x " + itemName + " for " + priceText);
+									}
+									else if(trade.isPurchase())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String itemName = getItemName(sellItem, "");
+										String priceText = trade.getCost().getString();
+										output.add("Purchasing " + sellItem.getCount() + "x " + itemName + " for " + priceText);
+									}
+									else if(trade.isBarter())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String sellItemName = getItemName(sellItem, trade.getCustomName());
+										ItemStack barterItem = trade.getBarterItem();
+										String barterItemName = getItemName(barterItem, "");
+										output.add("Bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName);
+									}
 								}
 							});
 						}
@@ -221,13 +239,13 @@ public class CurrencyListener extends SingleChannelListener{
 									else if(trade.isBarter() && findBarters.get())
 									{
 										ItemStack sellItem = trade.getSellItem();
-										String sellItemName = getItemName(sellItem,trade.getCustomName());
+										String sellItemName = getItemName(sellItem, trade.getCustomName());
+										
 										ItemStack barterItem = trade.getBarterItem();
 										String barterItemName = getItemName(barterItem,"");
 										
 										if(searchText.get().isEmpty() || sellItemName.toLowerCase().contains(searchText.get()) || barterItemName.toLowerCase().contains(searchText.get()))
 										{
-											//Passed the search
 											output.add(itemTrader.getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
 										}
 										

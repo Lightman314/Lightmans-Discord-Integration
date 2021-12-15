@@ -24,7 +24,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 //apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.18-0.0.1.2'
+version = '1.18-0.0.1.2a'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansconsole'
 

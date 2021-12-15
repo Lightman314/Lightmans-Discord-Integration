@@ -29,7 +29,7 @@ Allows users to run console commands via discord.
 [[dependencies.lightmansconsole]]
     modId="lightmanscurrency"
     mandatory=false
-    versionRange="[1.16.4-0.8.4.8,)"
+    versionRange="[1.16.4-1.0.1.2,)"
     ordering="AFTER"
     side="BOTH"
 [[dependencies.lightmansconsole]]

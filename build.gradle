@@ -7,7 +7,6 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-        //classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
         classpath "com.github.jengelman.gradle.plugins:shadow:4.0.4"
     }
 }
@@ -15,10 +14,9 @@ apply plugin: 'net.minecraftforge.gradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-//apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.16.4-0.0.1.1'
+version = '1.16.4-0.0.1.2'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansconsole'
 
@@ -33,12 +31,10 @@ minecraft {
         server {
             workingDirectory project.file('run')
 
-			//property 'mixin.env.disableRefMap', 'true'
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
-            //arg '-mixin.config=lightmansconsole.mixins.json'
 
             mods {
                 lightmansconsole {
@@ -122,7 +118,7 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compile fg.deobf('curse.maven:lightmans-currency-472521:3505942')
+    compile fg.deobf('curse.maven:lightmans-currency-472521:3565971')
 
     //Apache commons lang3
     embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
@@ -147,8 +143,7 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"lightman314",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")//,
-            //"MixinConfigs": "lightmansconsole.mixins.json"
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }

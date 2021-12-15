@@ -22,6 +22,7 @@ import io.github.lightman314.lightmanscurrency.common.universal_traders.TradingO
 import io.github.lightman314.lightmanscurrency.common.universal_traders.data.UniversalItemTraderData;
 import io.github.lightman314.lightmanscurrency.events.TradeEvent.PostTradeEvent;
 import io.github.lightman314.lightmanscurrency.events.UniversalTraderEvent.UniversalTradeCreateEvent;
+import io.github.lightman314.lightmanscurrency.trader.IItemTrader;
 import io.github.lightman314.lightmanscurrency.trader.tradedata.ItemTradeData;
 import io.github.lightman314.lightmanscurrency.trader.tradedata.ItemTradeData.ItemTradeType;
 import net.dv8tion.jda.api.entities.Message;
@@ -77,7 +78,7 @@ public class CurrencyListener extends SingleChannelListener{
 			{
 				List<String> output = new ArrayList<>();
 				output.add(prefix + "notifications <help|enable|disable> - Handle private currency notifications.");
-				output.add(prefix + "search <sales|purchases|all> [searchText] - List all universal trades selling items containing the searchText. Leave searchText empty to see all sales/purchases.");
+				output.add(prefix + "search <sales|purchases|barters|all> [searchText] - List all universal trades selling items containing the searchText. Leave searchText empty to see all sales/purchases/barters.");
 				output.add(prefix + "search <players|shops> [searchText] - List all trades for universal traders with player/shop names containing the searchText. Leave searchText empty to see all traders trades.");
 				MessageUtil.sendTextMessage(channel, output);
 			}
@@ -93,6 +94,7 @@ public class CurrencyListener extends SingleChannelListener{
 						output.add("Personal notifications are disabled.");
 					output.add("If personal notifications are enabled you will receive notifications for the following:");
 					output.add("-Purchases made on traders you own.");
+					output.add("-When your trader is out of stock.");
 					
 					MessageUtil.sendTextMessage(channel, output);
 				}
@@ -117,6 +119,7 @@ public class CurrencyListener extends SingleChannelListener{
 				AtomicReference<String> searchText = new AtomicReference<>("");
 				AtomicBoolean findSales = new AtomicBoolean(false);
 				AtomicBoolean findPurchases = new AtomicBoolean(false);
+				AtomicBoolean findBarters = new AtomicBoolean(false);
 				AtomicBoolean findOwners = new AtomicBoolean(false);
 				AtomicBoolean findTraders = new AtomicBoolean(false);
 				if(subcommand.startsWith("sales"))
@@ -127,9 +130,15 @@ public class CurrencyListener extends SingleChannelListener{
 				}
 				else if(subcommand.startsWith("purchases"))
 				{
-					findSales.set(false);
+					findPurchases.set(true);
 					if(subcommand.length() > 10)
 						searchText.set(subcommand.substring(10).toLowerCase());
+				}
+				else if(subcommand.startsWith("barters"))
+				{
+					findBarters.set(true);
+					if(subcommand.length() > 8)
+						searchText.set(subcommand.substring(8).toLowerCase());
 				}
 				else if(subcommand.startsWith("players"))
 				{
@@ -148,6 +157,7 @@ public class CurrencyListener extends SingleChannelListener{
 					//All
 					findSales.set(true);
 					findPurchases.set(true);
+					findBarters.set(true);
 					//findOwners.set(true);
 					//findTraders.set(true);
 					if(subcommand.length() > 4)
@@ -168,13 +178,31 @@ public class CurrencyListener extends SingleChannelListener{
 								{
 									if(firstTrade.get())
 									{
-										output.add("--" + itemTrader.getOwnerName() + "'s **" + itemTrader.getName().getString() + "** is selling:");
+										output.add("--" + itemTrader.getOwnerName() + "'s **" + itemTrader.getName().getString() + "**--");
 										firstTrade.set(false);
 									}
-									ItemStack sellItem = trade.getSellItem();
-									String itemName = getItemName(sellItem, trade.getTradeType() == ItemTradeType.SALE ? trade.getCustomName() : "");
-									String priceText = trade.isFree() ? "free" : trade.getCost().getString();
-									output.add(sellItem.getCount() + "x " + itemName + " for " + priceText);
+									if(trade.isSale())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String itemName = getItemName(sellItem, trade.getCustomName());
+										String priceText = trade.getCost().getString();
+										output.add("Selling " + sellItem.getCount() + "x " + itemName + " for " + priceText);
+									}
+									else if(trade.isPurchase())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String itemName = getItemName(sellItem, "");
+										String priceText = trade.getCost().getString();
+										output.add("Purchasing " + sellItem.getCount() + "x " + itemName + " for " + priceText);
+									}
+									else if(trade.isBarter())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String sellItemName = getItemName(sellItem, trade.getCustomName());
+										ItemStack barterItem = trade.getBarterItem();
+										String barterItemName = getItemName(barterItem, "");
+										output.add("Bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName);
+									}
 								}
 							});
 						}
@@ -183,7 +211,7 @@ public class CurrencyListener extends SingleChannelListener{
 							itemTrader.getAllTrades().forEach(trade ->{
 								if(trade.isValid())
 								{
-									if(trade.getTradeType() == ItemTradeType.SALE && findSales.get())
+									if(trade.isSale() && findSales.get())
 									{
 										ItemStack sellItem = trade.getSellItem();
 										String itemName = getItemName(sellItem, trade.getCustomName());
@@ -192,11 +220,11 @@ public class CurrencyListener extends SingleChannelListener{
 										if(searchText.get().isEmpty() || itemName.toString().toLowerCase().contains(searchText.get()))
 										{
 											//Passed the search
-											String priceText = trade.isFree() ? "free" : trade.getCost().getString();
+											String priceText = trade.getCost().getString();
 											output.add(itemTrader.getOwnerName() + " is selling " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
 										}
 									}
-									else if(trade.getTradeType() == ItemTradeType.PURCHASE && findPurchases.get())
+									else if(trade.isPurchase() && findPurchases.get())
 									{
 										ItemStack sellItem = trade.getSellItem();
 										String itemName = getItemName(sellItem, "");
@@ -205,9 +233,23 @@ public class CurrencyListener extends SingleChannelListener{
 										if(searchText.get().isEmpty() || itemName.toLowerCase().contains(searchText.get()))
 										{
 											//Passed the search
-											String priceText = trade.isFree() ? "free" : trade.getCost().getString();
-											output.add(itemTrader.getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName.toString() + " at " + itemTrader.getName().getString() + " for " + priceText);
+											String priceText = trade.getCost().getString();
+											output.add(itemTrader.getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
 										}
+									}
+									else if(trade.isBarter() && findBarters.get())
+									{
+										ItemStack sellItem = trade.getSellItem();
+										String sellItemName = getItemName(sellItem, trade.getCustomName());
+										
+										ItemStack barterItem = trade.getBarterItem();
+										String barterItemName = getItemName(barterItem,"");
+										
+										if(searchText.get().isEmpty() || sellItemName.toLowerCase().contains(searchText.get()) || barterItemName.toLowerCase().contains(searchText.get()))
+										{
+											output.add(itemTrader.getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
+										}
+										
 									}
 								}
 							});
@@ -290,10 +332,7 @@ public class CurrencyListener extends SingleChannelListener{
 						message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
 						//Price
 						message.append(" for ");
-						if(event.getTrade().isFree())
-							message.append("free");
-						else
-							message.append(event.getPricePaid().getString());
+						message.append(event.getPricePaid().getString());
 					}
 					//From trader name
 					message.append(" from your ").append(event.getTrader().getName().getString());
@@ -303,7 +342,6 @@ public class CurrencyListener extends SingleChannelListener{
 					this.addPendingMessage(linkedUser, message.toString());
 					//MessageUtil.sendPrivateMessage(linkedUser, message.toString());
 					
-					/* Temporarily removed until LC is updated
 					//Check if out of stock
 					if(event.getTrader() instanceof IItemTrader)
 					{
@@ -313,7 +351,6 @@ public class CurrencyListener extends SingleChannelListener{
 							//MessageUtil.sendPrivateMessage(linkedUser, "**This trade is now out of stock!**");
 						}
 					}
-					*/
 				}
 			}
 		}
@@ -331,7 +368,7 @@ public class CurrencyListener extends SingleChannelListener{
 	{
 		String userId = user.getId();
 		List<String> pendingMessages = this.pendingMessages.containsKey(userId) ? this.pendingMessages.get(userId) : Lists.newArrayList();
-		messages.forEach(message -> pendingMessages.add(message));
+		pendingMessages.addAll(messages);
 		this.pendingMessages.put(userId, pendingMessages);
 	}
 	

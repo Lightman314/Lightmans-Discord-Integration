@@ -85,7 +85,7 @@ shadowJar {
     relocate 'com.neovisionaries', 'dcshadow.com.neovisionaries'
     relocate 'gnu', 'dcshadow.gnu'
     relocate 'org.apache.commons.collections4', 'dcshadow.org.apache.commons.collections4'
-    relocate('org.apache.commons.lang3', 'dcshadow.org.apache.commons.lang3')
+    //relocate('org.apache.commons.lang3', 'dcshadow.org.apache.commons.lang3')
     relocate 'org.json', 'dcshadow.org.json'
     relocate 'org.intellij', 'dcshadow.org.intellij'
     relocate 'org.jetbrains', 'dcshadow.org.jetbrains'
@@ -131,7 +131,7 @@ dependencies {
     compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3566714')
 
     //Apache commons lang3
-    embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+   	//embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 	
 }
 

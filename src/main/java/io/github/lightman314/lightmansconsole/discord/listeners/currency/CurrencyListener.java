@@ -167,7 +167,7 @@ public class CurrencyListener extends SingleChannelListener{
 					if(trader instanceof UniversalItemTraderData) //Can't search for non item traders at this time
 					{
 						UniversalItemTraderData itemTrader = (UniversalItemTraderData)trader;
-						boolean listTrader = (findOwners.get() && (searchText.get().isEmpty() || itemTrader.getOwnerName().toLowerCase().contains(searchText.get())))
+						boolean listTrader = (findOwners.get() && (searchText.get().isEmpty() || itemTrader.getCoreSettings().getOwner().lastKnownName().toLowerCase().contains(searchText.get())))
 								|| (findTraders.get() && (searchText.get().isEmpty() || itemTrader.getName().getString().toLowerCase().contains(searchText.get())));
 						if(listTrader)
 						{
@@ -177,7 +177,7 @@ public class CurrencyListener extends SingleChannelListener{
 								{
 									if(firstTrade.get())
 									{
-										output.add("--" + itemTrader.getOwnerName() + "'s **" + itemTrader.getName().getString() + "**--");
+										output.add("--" + itemTrader.getCoreSettings().getOwnerName() + "'s **" + itemTrader.getName().getString() + "**--");
 										firstTrade.set(false);
 									}
 									if(trade.isSale())
@@ -220,7 +220,7 @@ public class CurrencyListener extends SingleChannelListener{
 										{
 											//Passed the search
 											String priceText = trade.getCost().getString();
-											output.add(itemTrader.getOwnerName() + " is selling " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
+											output.add(itemTrader.getCoreSettings().getOwnerName() + " is selling " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
 										}
 									}
 									else if(trade.isPurchase() && findPurchases.get())
@@ -233,7 +233,7 @@ public class CurrencyListener extends SingleChannelListener{
 										{
 											//Passed the search
 											String priceText = trade.getCost().getString();
-											output.add(itemTrader.getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName.toString() + " at " + itemTrader.getName().getString() + " for " + priceText);
+											output.add(itemTrader.getCoreSettings().getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName.toString() + " at " + itemTrader.getName().getString() + " for " + priceText);
 										}
 									}
 									else if(trade.isBarter() && findBarters.get())
@@ -246,7 +246,7 @@ public class CurrencyListener extends SingleChannelListener{
 										
 										if(searchText.get().isEmpty() || sellItemName.toLowerCase().contains(searchText.get()) || barterItemName.toLowerCase().contains(searchText.get()))
 										{
-											output.add(itemTrader.getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
+											output.add(itemTrader.getCoreSettings().getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
 										}
 										
 									}
@@ -292,7 +292,10 @@ public class CurrencyListener extends SingleChannelListener{
 	@SubscribeEvent
 	public void onTradeCarriedOut(PostTradeEvent event)
 	{
-		LinkedAccount account = AccountManager.getLinkedAccountFromPlayerID(event.getTrader().getOwnerID());
+		LinkedAccount account;
+		try {
+			account = AccountManager.getLinkedAccountFromPlayerID(event.getTrader().getCoreSettings().getOwner().id);
+		} catch(Exception e) { e.printStackTrace(); return; }
 		if(account != null)
 		{
 			User linkedUser = this.getJDA().getUserById(account.discordID);
@@ -422,7 +425,7 @@ public class CurrencyListener extends SingleChannelListener{
 		public void run() {
 			if(this.event.getData() == null) //Abort if the trader was removed.
 				return;
-			cl.sendTextMessage(this.event.getOwner().getName().getString() + " has made a new Universal Trader" + (event.getData().hasCustomName() ? " '" + event.getData().getName().getString() + "'!" : "!"));
+			cl.sendTextMessage(this.event.getOwner().getName().getString() + " has made a new Universal Trader" + (event.getData().getCoreSettings().hasCustomName() ? " '" + event.getData().getName().getString() + "'!" : "!"));
 		}
 		
 	}

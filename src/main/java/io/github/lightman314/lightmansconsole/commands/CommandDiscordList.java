@@ -9,7 +9,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
-import io.github.lightman314.lightmansconsole.discord.links.PartialLinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PendingLink;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -34,9 +33,6 @@ public class CommandDiscordList {
 		List<LinkedAccount> a = AccountManager.getLinkedAccounts();
 		source.sendSuccess(new TextComponent("--------Linked Accounts--------"), false);
 		a.forEach(account-> source.sendSuccess(new TextComponent("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
-		//List partially linked accounts as though they were normal linked accounts
-		List<PartialLinkedAccount> part = AccountManager.getPartiallyLinkedAccounts();
-		part.forEach(account -> source.sendSuccess(new TextComponent("DiscordID: " + account.discordID + "; PlayerName: " + account.playerName), false));
 		//List pending links
 		List<PendingLink> pend = AccountManager.getPendingLinks();
 		source.sendSuccess(new TextComponent("--------Pending Links--------"), false);

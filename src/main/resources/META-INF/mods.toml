@@ -29,6 +29,6 @@ Allows users to run console commands via discord.
 [[dependencies.lightmansconsole]]
     modId="lightmanscurrency"
     mandatory=false
-    versionRange="[1.18-1.0.1.2,)"
+    versionRange="[1.18-1.0.2.2,)"
     ordering="AFTER"
     side="BOTH"

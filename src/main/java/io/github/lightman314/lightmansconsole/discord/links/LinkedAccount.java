@@ -22,11 +22,11 @@ public class LinkedAccount {
 	
 	public boolean equalsPlayerName(String playerName)
 	{
-		return this.getName().equals(playerName);
+		return this.getName().toLowerCase().contentEquals(playerName.toLowerCase());
 	}
 
 	public boolean equalsDiscordID(String discordID) {
-		return this.discordID.equals(discordID);
+		return this.discordID.contentEquals(discordID);
 	}
 
 }

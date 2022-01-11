@@ -13,7 +13,7 @@ public class RegisterAccountCommands {
 	{
 		event.registerCommand(new IGNCommand());
 		event.registerCommand(new DiscordNameCommand());
-		event.registerCommand(new StatsCommand());
+		//event.registerCommand(new StatsCommand());
 	}
 	
 }

@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.authlib.GameProfile;
 
 import io.github.lightman314.lightmansconsole.LightmansConsole;
 import net.dv8tion.jda.api.JDA;
@@ -16,12 +17,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
@@ -34,8 +32,6 @@ public class AccountManager extends SavedData{
 	public static List<PendingLink> getPendingLinks() { return get().pendingLinks; }
 	List<LinkedAccount> linkedAccounts = new ArrayList<>();
 	public static List<LinkedAccount> getLinkedAccounts() { return get().linkedAccounts; }
-	List<PartialLinkedAccount> partiallyLinkedAccounts = new ArrayList<>();
-	public static List<PartialLinkedAccount> getPartiallyLinkedAccounts() { return get().partiallyLinkedAccounts; }
 	
 	List<String> currencyNotifications = new ArrayList<>();
 	
@@ -74,18 +70,6 @@ public class AccountManager extends SavedData{
 				this.pendingLinks.add(new PendingLink(linkKey, id));
 			}
 		}
-		if(compound.contains("PartialLinks", Tag.TAG_LIST))
-		{
-			this.partiallyLinkedAccounts.clear();
-			ListTag partialLinkList = compound.getList("PartialLinks", Tag.TAG_COMPOUND);
-			for(int i = 0; i < partialLinkList.size(); i++)
-			{
-				CompoundTag thisCompound = partialLinkList.getCompound(i);
-				String name = thisCompound.getString("name");
-				String id = thisCompound.getString("id");
-				this.partiallyLinkedAccounts.add(new PartialLinkedAccount(name, id));
-			}
-		}
 		if(compound.contains("CurrencyNotifications", Tag.TAG_LIST))
 		{
 			this.currencyNotifications.clear();
@@ -94,6 +78,29 @@ public class AccountManager extends SavedData{
 			{
 				CompoundTag thisCompound = currencyNotificationList.getCompound(i);
 				this.currencyNotifications.add(thisCompound.getString("id"));
+			}
+		}
+		
+		//Convert partial links into full links
+		if(compound.contains("PartialLinks", Tag.TAG_LIST))
+		{
+			ListTag partialLinkList = compound.getList("PartialLinks", Tag.TAG_COMPOUND);
+			{
+				MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+				for(int i = 0; i < partialLinkList.size(); ++i)
+				{
+					CompoundTag thisCompound = partialLinkList.getCompound(i);
+					String name = thisCompound.getString("name");
+					String id = thisCompound.getString("id");
+					GameProfile profile = server.getProfileCache().get(name).orElse(null);
+					if(profile != null)
+					{
+						LinkedAccount newLink = new LinkedAccount(profile.getId(), id);
+						//Confirm that a linked account doesn't already exist for that player/user
+						if(this.getAccountFromPlayerID(profile.getId()) == null && this.getAccountFromDiscordID(id) == null)
+							this.linkedAccounts.add(newLink);
+					}
+				}
 			}
 		}
 		
@@ -114,6 +121,7 @@ public class AccountManager extends SavedData{
 			accountList.add(thisCompound);
 		}
 		compound.put("LinkedAccounts", accountList);
+		
 		ListTag pendingLinkList = new ListTag();
 		for(int i = 0; i < this.pendingLinks.size(); i++)
 		{
@@ -124,16 +132,6 @@ public class AccountManager extends SavedData{
 			pendingLinkList.add(thisCompound);
 		}
 		compound.put("PendingLinks", pendingLinkList);
-		ListTag partialLinkList = new ListTag();
-		for(int i = 0; i < this.partiallyLinkedAccounts.size(); i++)
-		{
-			CompoundTag thisCompound = new CompoundTag();
-			PartialLinkedAccount thisAccount = partiallyLinkedAccounts.get(i);
-			thisCompound.putString("name", thisAccount.playerName);
-			thisCompound.putString("id", thisAccount.discordID);
-			partialLinkList.add(thisCompound);
-		}
-		compound.put("PartialLinks", partialLinkList);
 		
 		ListTag currencyNotificationList = new ListTag();
 		for(int i = 0; i < this.currencyNotifications.size(); i++)
@@ -256,41 +254,6 @@ public class AccountManager extends SavedData{
 		}
 	}
 	
-	public static PartialLinkedAccount getPartialLinkedAccountFromMember(Member member)
-	{
-		return get().getPartialLinkFromUser(member.getUser());
-	}
-	
-	public static PartialLinkedAccount getPartialLinkedAccountFromUser(User user)
-	{
-		return get().getPartialLinkFromUser(user);
-	}
-	
-	private PartialLinkedAccount getPartialLinkFromUser(User user)
-	{
-		for(int i = 0; i < this.partiallyLinkedAccounts.size(); i++)
-		{
-			if(this.partiallyLinkedAccounts.get(i).discordID.equals(user.getId()))
-				return this.partiallyLinkedAccounts.get(i);
-		}
-		return null;
-	}
-	
-	public static PartialLinkedAccount getPartialLinkedAccountFromPlayerName(String playerName)
-	{
-		return get().getPartialLinkFromName(playerName);
-	}
-	
-	private PartialLinkedAccount getPartialLinkFromName(String playerName)
-	{
-		for(int i = 0; i < this.partiallyLinkedAccounts.size(); i++)
-		{
-			if(this.partiallyLinkedAccounts.get(i).playerName.equals(playerName))
-				return this.partiallyLinkedAccounts.get(i);
-		}
-		return null;
-	}
-	
 	//Static functions
 	private static AccountManager get()
 	{
@@ -306,8 +269,6 @@ public class AccountManager extends SavedData{
 	{
 		AccountManager manager = get();
 		if(manager.getAccountFromDiscordID(user.getId()) != null)//Don't create a pending link if the user is already linked
-			return null;
-		if(manager.getPartialLinkFromUser(user) != null) //Don't create a pending link if the user is already linked
 			return null;
 		PendingLink link = manager.getPendingLinkFromUser(user);
 		if(link != null)
@@ -356,14 +317,6 @@ public class AccountManager extends SavedData{
 			return ImmutableList.of("Your discord account has been successfully unlinked from '" + account.getName() + "'.");
 		}
 		
-		PartialLinkedAccount partialLink = manager.getPartialLinkFromUser(user);
-		if(partialLink != null)
-		{
-			manager.partiallyLinkedAccounts.remove(partialLink);
-			manager.setDirty();
-			return ImmutableList.of("Your discord account has been successfully unlinked from '" + partialLink.playerName + "'.");
-		}
-		
 		PendingLink pendingLink = manager.getPendingLinkFromUser(user);
 		if(pendingLink != null)
 		{
@@ -393,86 +346,31 @@ public class AccountManager extends SavedData{
 				return ImmutableList.of("'" + playerName + "' has been unlinked from the unknown users account.");
 		}
 		
-		PartialLinkedAccount partialLink = manager.getPartialLinkFromName(playerName);
-		if(partialLink != null)
-		{
-			manager.partiallyLinkedAccounts.remove(partialLink);
-			manager.setDirty();
-			AtomicReference<User> currentLinkedUser = new AtomicReference<>();
-			String currentLinkedDiscordID = partialLink.discordID;
-			jda.getUsers().forEach(u ->{
-				if(u.getId().equals(currentLinkedDiscordID))
-					currentLinkedUser.set(u);
-			});
-			if(currentLinkedUser.get() != null)
-				return ImmutableList.of("'" + playerName + "' has been unlinked from " + currentLinkedUser.get().getName() + "'s account.");
-			else
-				return ImmutableList.of("'" + playerName + "' has been unlinked from the unknown users account.");
-		}
-		
 		return ImmutableList.of("'" + playerName + "' is not linked to any accounts.");
 	}
 	
-	public static List<String> tryCreatePartialLink(User user, String playerName)
+	public static List<String> tryLinkUser2(User user, String playerName)
 	{
 		AccountManager manager = get();
-		if(manager.getAccountFromMinecraftName(playerName) != null || manager.getPartialLinkFromName(playerName) != null)
+		if(manager.getAccountFromMinecraftName(playerName) != null)
 			return ImmutableList.of("'" + playerName + "' is already linked to a discord account.");
-		if(manager.getAccountFromDiscordID(user.getId()) != null || manager.getPartialLinkFromUser(user) != null)
+		if(manager.getAccountFromDiscordID(user.getId()) != null)
 			return ImmutableList.of("'" + user.getName() + "' is already linked to a minecraft account.");
 		if(manager.getPendingLinkFromUser(user) != null)
 			return ImmutableList.of("'" + user.getName() + "' already has a pending link.");
-		for(int i = 0; i < manager.partiallyLinkedAccounts.size(); i++)
-		{
-			PartialLinkedAccount partialLink = manager.partiallyLinkedAccounts.get(i);
-			if(partialLink.discordID.equals(user.getId()))
-			{
-				return ImmutableList.of("'" + user.getName() + "' is already linked to a minecraft account.");
-			}
-			else if(partialLink.playerName.equals(playerName))
-			{
-				return ImmutableList.of("'" + playerName + "' is already linked to a discord account.");
-			}
-		}
 		
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-		List<ServerPlayer> players = server.getPlayerList().getPlayers();
-		for(int i = 0; i < players.size(); i++)
+		GameProfile playerProfile = server.getProfileCache().get(playerName).orElse(null);
+		if(playerProfile != null)
 		{
-			if(players.get(i).getName().getString().equals(playerName))
-			{
-				LinkedAccount newAccount = new LinkedAccount(players.get(i).getUUID(), user.getId());
-				manager.linkedAccounts.add(newAccount);
-				manager.setDirty();
-				LightmansConsole.LOGGER.info("Linked discord #" + user.getId() + " with '" + playerName + "'");
-				return ImmutableList.of("Successfully linked " + user.getName() + " to '" + playerName +"'");
-			}
+			LinkedAccount newAccount = new LinkedAccount(playerProfile.getId(), user.getId());
+			manager.linkedAccounts.add(newAccount);
+			manager.setDirty();
+			LightmansConsole.LOGGER.info("Linked discord #" + user.getId() + " with '" + playerProfile.getName() + "' (" + playerProfile.getId().toString() + ")");
+			return ImmutableList.of("Successfully linked " + user.getName() + " to '" + playerProfile.getName() +"'");
 		}
-		PartialLinkedAccount partialLink = new PartialLinkedAccount(playerName, user.getId());
-		manager.partiallyLinkedAccounts.add(partialLink);
-		manager.setDirty();
-		LightmansConsole.LOGGER.info("Partially linked discord #" + user.getId() + " with '" + playerName + "'");
-		return ImmutableList.of("Successfully linked " + user.getName() + " to '" + playerName +"'");
-	}
-	
-	@SubscribeEvent
-	public static void onPlayerLogin(PlayerLoggedInEvent event)
-	{
-		AccountManager manager = get();
-		Player player = event.getPlayer();
-		for(int i = 0; i < manager.partiallyLinkedAccounts.size(); i++)
-		{
-			if(manager.partiallyLinkedAccounts.get(i).playerName.equals(player.getName().getString()))
-			{
-				//Finalize the link
-				LinkedAccount newAccount = new LinkedAccount(player.getUUID(), manager.partiallyLinkedAccounts.get(i).discordID);
-				manager.linkedAccounts.add(newAccount);
-				manager.partiallyLinkedAccounts.remove(i);
-				manager.setDirty();
-				LightmansConsole.LOGGER.info("Finalized linking discord #" + newAccount.discordID + " with '" + player.getName().getString() + "'");
-				return;
-			}
-		}
+		else
+			return ImmutableList.of(playerName + " is not a valid Minecraft account.");
 	}
 
 	//Currency notification functions

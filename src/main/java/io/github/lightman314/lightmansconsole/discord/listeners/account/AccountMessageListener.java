@@ -97,7 +97,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 				}
 				if(linkingUser != null)
 				{
-					List<String> output = AccountManager.tryCreatePartialLink(linkingUser.getUser(), playerName);
+					List<String> output = AccountManager.tryLinkUser2(linkingUser.getUser(), playerName);
 					MessageUtil.sendTextMessage(event.getTextChannel(), output);
 					if(Config.SERVER.accountWhitelist.get())
 					{
@@ -159,13 +159,6 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 					output.add("Minecraft ID: " + la.playerID.toString());
 					output.add("Minecraft Name: " + la.getName());
 					output.add("");
-				});
-				AccountManager.getPartiallyLinkedAccounts().forEach(pl ->{
-					output.add("DiscordID: " + pl.discordID);
-					Member member = event.getGuild().getMemberById(pl.discordID);
-					if(member != null)
-						output.add("Discord Name: " + member.getEffectiveName());
-					output.add("Minecraft Name: " + pl.playerName);
 				});
 				output.add("------**Pending Links**------");
 				AccountManager.getPendingLinks().forEach(pl ->{

@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
-import io.github.lightman314.lightmansconsole.discord.links.PartialLinkedAccount;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.MessageArgument;
@@ -58,18 +57,7 @@ public class CommandDiscordUnlinkOther {
 			commandContext.getSource().sendFeedback(new StringTextComponent(playerName + " is no longer linked to their discord account."), true);
 			return 1;
 		}
-		PartialLinkedAccount partialAccount = AccountManager.getPartialLinkedAccountFromPlayerName(playerName);
-		if(partialAccount != null)
-		{
-			AccountManager.getPartiallyLinkedAccounts().remove(partialAccount);
-			AccountManager.markAsDirty();
-			commandContext.getSource().sendFeedback(new StringTextComponent(playerName + " is no longer linked to their discord account."), true);
-			return 1;
-		}
-		else
-		{
-			commandContext.getSource().sendErrorMessage(new StringTextComponent("Their account is not linked to a discord account."));
-		}
+		commandContext.getSource().sendErrorMessage(new StringTextComponent("Their account is not linked to a discord account."));
 		return 0;
 	}
 	

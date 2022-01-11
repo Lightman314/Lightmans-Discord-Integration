@@ -32,9 +32,3 @@ Allows users to run console commands via discord.
     versionRange="[1.16.4-1.0.1.2,)"
     ordering="AFTER"
     side="BOTH"
-[[dependencies.lightmansconsole]]
-    modId="blocklog"
-    mandatory=false
-    versionRange="[1.0.0,)"
-    ordering="AFTER"
-    side="BOTH"

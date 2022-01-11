@@ -4,7 +4,6 @@ import java.util.List;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
-import io.github.lightman314.lightmansconsole.discord.links.PartialLinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.listeners.account.AccountCommand;
 import io.github.lightman314.lightmansconsole.util.MemberUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -35,15 +34,7 @@ public class IGNCommand extends AccountCommand{
 			}
 			else
 			{
-				PartialLinkedAccount pl = AccountManager.getPartialLinkedAccountFromMember(member);
-				if(pl != null)
-				{
-					output.add(member.getEffectiveName() + " is linked to " + pl.playerName);
-				}
-				else
-				{
-					output.add(this.accountNotLinkedErrorForMember(member));
-				}
+				output.add(this.accountNotLinkedErrorForMember(member));
 			}
 		}
 		else

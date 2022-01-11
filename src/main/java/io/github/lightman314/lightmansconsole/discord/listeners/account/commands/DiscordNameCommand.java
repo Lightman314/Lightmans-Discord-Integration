@@ -4,7 +4,6 @@ import java.util.List;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
-import io.github.lightman314.lightmansconsole.discord.links.PartialLinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.listeners.account.AccountCommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -28,12 +27,6 @@ public class DiscordNameCommand extends AccountCommand{
 		String discordID = "";
 		if(la != null)
 			discordID = la.discordID;
-		else
-		{
-			PartialLinkedAccount pl = AccountManager.getPartialLinkedAccountFromPlayerName(minecraftName);
-			if(pl != null)
-				discordID = pl.discordID;
-		}
 		if(!discordID.isEmpty())
 		{
 			Member member = guild.getMemberById(discordID);

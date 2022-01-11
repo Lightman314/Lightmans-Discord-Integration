@@ -16,7 +16,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.16.4-0.0.1.2'
+version = '1.16.4-0.0.1.3'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansconsole'
 
@@ -118,7 +118,7 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compile fg.deobf('curse.maven:lightmans-currency-472521:3565971')
+    compile fg.deobf('curse.maven:lightmans-currency-472521:3601420')
 
     //Apache commons lang3
     embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'

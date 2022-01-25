@@ -170,7 +170,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		if(event.getEntity() instanceof Player && instance != null)
 		{
-			instance.sendTextMessage(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()).getString());
+			instance.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
 		}
 	}
 	
@@ -202,9 +202,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		return new TextComponent(MessageManager.M_FORMAT_MINECRAFT_PREFIX.get())
 				.append(formatMemberName(member))
-				.append(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.get())
-				.append(" ")
-				.append(MessageUtil.formatMessageText(message, this.getGuild()));
+				.append(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.format(MessageUtil.formatMessageText(message, this.getGuild())));
 	}
 	
 	public static Component formatMemberName(Member member)

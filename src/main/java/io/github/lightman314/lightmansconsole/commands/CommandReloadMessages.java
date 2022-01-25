@@ -15,7 +15,7 @@ public class CommandReloadMessages {
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
 		LiteralArgumentBuilder<CommandSourceStack> reloadCommand
-			= Commands.literal("discordreload")
+			= Commands.literal("reloadmessages")
 				.requires((commandSource) -> commandSource.hasPermission(2))
 				.executes(CommandReloadMessages::reloadMessages);
 		

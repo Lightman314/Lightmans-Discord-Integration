@@ -3,30 +3,30 @@ loaderVersion="[35,)"
 license="All rights reserved"
 [[mods]]
 # The modid of the mod
-modId="lightmansconsole"
+modId="lightmansdiscord"
 version="${file.jarVersion}"
-displayName="Lightmans Console"
+displayName="Lightmans Discord Integration"
 #logoFile="examplemod.png"
 #credits="Thanks for this example mod goes to Java"
 authors="Lightman314"
 description='''
-Allows users to run console commands via discord.
+Creates a discord bot for chat interaction, command execution, whitelisting, and account linking.
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
-[[dependencies.lightmansconsole]]
+[[dependencies.lightmansdiscord]]
     modId="forge"
     mandatory=true
     versionRange="[35,)"
     ordering="NONE"
     side="BOTH"
-[[dependencies.lightmansconsole]]
+[[dependencies.lightmansdiscord]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.16.4,1.17)"
     ordering="NONE"
     side="BOTH"
-[[dependencies.lightmansconsole]]
+[[dependencies.lightmansdiscord]]
     modId="lightmanscurrency"
     mandatory=false
     versionRange="[1.16.4-1.0.1.2,)"

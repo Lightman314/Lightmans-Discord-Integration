@@ -26,27 +26,6 @@ public class CommandDiscordUnlinkOther {
 		dispatcher.register(discordLinkCommand);
 	}
 	
-	/*static int unlinkPlayer(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{
-		
-		PlayerEntity player = EntityArgument.getPlayer(commandContext, "player");
-		if(player == null)
-		{
-			commandContext.getSource().sendErrorMessage(new StringTextComponent("Not a valid player."));
-		}
-		LinkedAccount account = AccountManager.getLinkedAccountFromPlayer(player);
-		if(account != null)
-		{
-			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendFeedback(new StringTextComponent(player.getName().getString() + " is no longer linked to their discord account."), true);
-			return 1;
-		}
-		else
-		{
-			commandContext.getSource().sendErrorMessage(new StringTextComponent("Their account is not linked to a discord account."));
-		}
-		return 0;
-	}*/
-	
 	static int unlinkPlayerName(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{
 		
 		String playerName = MessageArgument.getMessage(commandContext, "playerName").getString();

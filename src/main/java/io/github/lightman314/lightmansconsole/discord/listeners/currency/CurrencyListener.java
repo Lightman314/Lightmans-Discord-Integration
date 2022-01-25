@@ -13,10 +13,11 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 
 import io.github.lightman314.lightmansconsole.Config;
-import io.github.lightman314.lightmansconsole.LightmansConsole;
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
 import io.github.lightman314.lightmanscurrency.common.universal_traders.TradingOffice;
 import io.github.lightman314.lightmanscurrency.common.universal_traders.data.UniversalItemTraderData;
@@ -46,7 +47,7 @@ public class CurrencyListener extends SingleChannelListener{
 	
 	public CurrencyListener(Supplier<String> consoleChannel)
 	{
-		super(consoleChannel, () -> LightmansConsole.PROXY.getJDA());
+		super(consoleChannel, () -> LightmansDiscordIntegration.PROXY.getJDA());
 		this.timer = new Timer();
 		this.timer.scheduleAtFixedRate(new NotifyTraderOwnerTask(this), 0, PENDING_MESSAGE_TIMER);
 	}
@@ -77,9 +78,9 @@ public class CurrencyListener extends SingleChannelListener{
 			if(command.startsWith("help"))
 			{
 				List<String> output = new ArrayList<>();
-				output.add(prefix + "notifications <help|enable|disable> - Handle private currency notifications.");
-				output.add(prefix + "search <sales|purchases|barters|all> [searchText] - List all universal trades selling items containing the searchText. Leave searchText empty to see all sales/purchases/barters.");
-				output.add(prefix + "search <players|shops> [searchText] - List all trades for universal traders with player/shop names containing the searchText. Leave searchText empty to see all traders trades.");
+				output.add(prefix + "notifications <help|enable|disable> - " + MessageManager.M_HELP_LC_NOTIFICATIONS.get());
+				output.add(prefix + "search <sales|purchases|barters|all> [searchText] - " + MessageManager.M_HELP_LC_SEARCH1.get());
+				output.add(prefix + "search <players|shops> [searchText] - " + MessageManager.M_HELP_LC_SEARCH2.get());
 				MessageUtil.sendTextMessage(channel, output);
 			}
 			else if(command.startsWith("notifications "))
@@ -88,29 +89,24 @@ public class CurrencyListener extends SingleChannelListener{
 				if(subcommand.startsWith("help"))
 				{
 					List<String> output = new ArrayList<>();
-					if(AccountManager.currencyNotificationsEnabled(author))
-						output.add("Personal notifications are enabled.");
-					else
-						output.add("Personal notifications are disabled.");
-					output.add("If personal notifications are enabled you will receive notifications for the following:");
-					output.add("-Purchases made on traders you own.");
-					output.add("-When your trader is out of stock.");
+					output.add(AccountManager.currencyNotificationsEnabled(author) ? MessageManager.M_NOTIFICATIONS_ENABLED.get() : MessageManager.M_NOTIFICATIONS_DISABLED.get());
+					output.addAll(Lists.newArrayList(MessageManager.M_NOTIFICATIONS_HELP.get().split("\\n")));
 					
 					MessageUtil.sendTextMessage(channel, output);
 				}
 				else if(subcommand.startsWith("enable"))
 				{
 					if(AccountManager.enableCurrencyNotifications(author))
-						MessageUtil.sendTextMessage(channel, "Personal notifications are now enabled.");
+						MessageUtil.sendTextMessage(channel, MessageManager.M_NOTIFICATIONS_ENABLE_SUCCESS.get());
 					else
-						MessageUtil.sendTextMessage(channel, "Personal notifications were already enabled.");
+						MessageUtil.sendTextMessage(channel, MessageManager.M_NOTIFICATIONS_ENABLE_FAIL.get());
 				}
 				else if(subcommand.startsWith("disable"))
 				{
 					if(AccountManager.disableCurrencyNotifications(author))
-						MessageUtil.sendTextMessage(channel, "Personal notifications are now disabled.");
+						MessageUtil.sendTextMessage(channel, MessageManager.M_NOTIFICATIONS_DISABLE_SUCCESS.get());
 					else
-						MessageUtil.sendTextMessage(channel, "Personal notifications were already disabled.");
+						MessageUtil.sendTextMessage(channel, MessageManager.M_NOTIFICATIONS_DISABLE_FAIL.get());
 				}
 			}
 			else if(command.startsWith("search "))
@@ -259,7 +255,7 @@ public class CurrencyListener extends SingleChannelListener{
 				if(output.size() > 0)
 					MessageUtil.sendTextMessage(channel, output);
 				else
-					MessageUtil.sendTextMessage(channel, "No results found.");
+					MessageUtil.sendTextMessage(channel, MessageManager.M_SEARCH_NORESULTS.get());
 				
 			}
 		}
@@ -351,7 +347,7 @@ public class CurrencyListener extends SingleChannelListener{
 					{
 						if(itemTrade.stockCount((IItemTrader)event.getTrader()) < 1)
 						{
-							this.addPendingMessage(linkedUser, "**This trade is now out of stock!**");
+							this.addPendingMessage(linkedUser, MessageManager.M_NOTIFICATION_OUTOFSTOCK.get());
 							//MessageUtil.sendPrivateMessage(linkedUser, "**This trade is now out of stock!**");
 						}
 					}
@@ -425,7 +421,10 @@ public class CurrencyListener extends SingleChannelListener{
 		public void run() {
 			if(this.event.getData() == null) //Abort if the trader was removed.
 				return;
-			cl.sendTextMessage(this.event.getOwner().getName().getString() + " has made a new Universal Trader" + (event.getData().getCoreSettings().hasCustomName() ? " '" + event.getData().getName().getString() + "'!" : "!"));
+			if(event.getData().getCoreSettings().hasCustomName())
+				cl.sendTextMessage(MessageManager.M_NEWTRADER_NAMED.format(this.event.getData().getCoreSettings().getOwnerName(), event.getData().getCoreSettings().getCustomName()));
+			else
+				cl.sendTextMessage(MessageManager.M_NEWTRADER.format(this.event.getData().getCoreSettings().getOwnerName()));
 		}
 		
 	}

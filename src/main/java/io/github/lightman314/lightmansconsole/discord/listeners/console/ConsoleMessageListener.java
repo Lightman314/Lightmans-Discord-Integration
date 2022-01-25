@@ -7,8 +7,9 @@ import java.util.UUID;
 import com.google.common.base.Supplier;
 
 import io.github.lightman314.lightmansconsole.Config;
-import io.github.lightman314.lightmansconsole.LightmansConsole;
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.ICommandSource;
@@ -30,10 +31,10 @@ public class ConsoleMessageListener extends SingleChannelListener implements ICo
 	
 	public ConsoleMessageListener(Supplier<String> consoleChannel)
 	{
-		super(consoleChannel, () -> LightmansConsole.PROXY.getJDA());
+		super(consoleChannel, () -> LightmansDiscordIntegration.PROXY.getJDA());
 		server = ServerLifecycleHooks.getCurrentServer();
 		commandSource = this.getCommandSource();
-		this.sendTextMessage("Console Bot is ready!");
+		this.sendTextMessage(MessageManager.M_CONSOLEBOT_READY.get());
 	}
 	
 	@Override
@@ -52,7 +53,7 @@ public class ConsoleMessageListener extends SingleChannelListener implements ICo
 				command = command.substring(2, command.length());
 			//LightmansConsole.LOGGER.info("Received Command: '" + command + "'");
 			if(server == null)
-				LightmansConsole.LOGGER.error("Server is null!");
+				LightmansDiscordIntegration.LOGGER.error("Server is null!");
 			else
 			{
 				this.output.clear();

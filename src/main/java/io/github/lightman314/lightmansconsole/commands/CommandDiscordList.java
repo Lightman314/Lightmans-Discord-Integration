@@ -31,12 +31,24 @@ public class CommandDiscordList {
 		CommandSource source = commandContext.getSource();
 		//List linked accounts
 		List<LinkedAccount> a = AccountManager.getLinkedAccounts();
-		source.sendFeedback(new StringTextComponent("--------Linked Accounts--------"), false);
-		a.forEach(account-> source.sendFeedback(new StringTextComponent("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
+		if(a.size() > 0)
+		{
+			source.sendFeedback(new StringTextComponent("--------Linked Accounts--------"), false);
+			a.forEach(account-> source.sendFeedback(new StringTextComponent("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
+		}
+		
 		//List pending links
 		List<PendingLink> pend = AccountManager.getPendingLinks();
-		source.sendFeedback(new StringTextComponent("--------Pending Links--------"), false);
-		pend.forEach(account -> source.sendFeedback(new StringTextComponent("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
+		if(pend.size() >= 0)
+		{
+			source.sendFeedback(new StringTextComponent("--------Pending Links--------"), false);
+			pend.forEach(account -> source.sendFeedback(new StringTextComponent("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
+		}
+		
+		if(a.size() <= 0 && pend.size() <= 0)
+		{
+			source.sendFeedback(new StringTextComponent("No discord accounts are linked to this server."), false);
+		}
 		
 		return 1;
 		

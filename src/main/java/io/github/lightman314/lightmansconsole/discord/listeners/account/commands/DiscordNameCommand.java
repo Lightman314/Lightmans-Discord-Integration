@@ -5,8 +5,8 @@ import java.util.List;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.listeners.account.AccountCommand;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 
 public class DiscordNameCommand extends AccountCommand{
 
@@ -24,17 +24,12 @@ public class DiscordNameCommand extends AccountCommand{
 		
 		String minecraftName = input.substring(this.literal.length()).replace(" ", "");
 		LinkedAccount la = AccountManager.getLinkedAccountFromMinecraftName(minecraftName);
-		String discordID = "";
 		if(la != null)
-			discordID = la.discordID;
-		if(!discordID.isEmpty())
 		{
-			Member member = guild.getMemberById(discordID);
-			if(member != null)
-				output.add("'" + minecraftName + "' is linked to " + member.getEffectiveName());
-			else
-				output.add("'" + minecraftName + "' is linked, but the member is no longer on this discord server.");
+			output.add(MessageManager.M_DISCORDNAME_SUCCESS.format(la.getName(), la.getMemberName()));
 		}
+		else
+			output.add(MessageManager.M_DISCORDNAME_SUCCESS.format(minecraftName));
 		
 		return output;
 	}

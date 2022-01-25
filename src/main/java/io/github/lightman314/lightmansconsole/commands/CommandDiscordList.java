@@ -39,7 +39,7 @@ public class CommandDiscordList {
 		
 		//List pending links
 		List<PendingLink> pend = AccountManager.getPendingLinks();
-		if(pend.size() >= 0)
+		if(pend.size() > 0)
 		{
 			source.sendFeedback(new StringTextComponent("--------Pending Links--------"), false);
 			pend.forEach(account -> source.sendFeedback(new StringTextComponent("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));

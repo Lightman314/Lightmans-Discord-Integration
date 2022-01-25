@@ -16,7 +16,7 @@ public class DiscordNameCommand extends AccountCommand{
 
 	@Override
 	public void addToHelpText(List<String> output, String prefix) {
-		output.add(prefix + this.literal + " <IGN> - Get the discord members name of the given minecraft account.");
+		output.add(prefix + this.literal + " <IGN> - " + MessageManager.M_HELP_DISCORDNAME.get());
 	}
 
 	@Override
@@ -29,7 +29,7 @@ public class DiscordNameCommand extends AccountCommand{
 			output.add(MessageManager.M_DISCORDNAME_SUCCESS.format(la.getName(), la.getMemberName()));
 		}
 		else
-			output.add(MessageManager.M_DISCORDNAME_SUCCESS.format(minecraftName));
+			output.add(MessageManager.M_DISCORDNAME_FAIL.format(minecraftName));
 		
 		return output;
 	}

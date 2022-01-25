@@ -92,7 +92,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 					playerName = subcommand.substring(endIndex + 1).replace(" ", ""); //Wipe empty space from the name
 				else
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PING.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_NOPING.format());
 					return;
 				}
 				if(linkingUser != null)

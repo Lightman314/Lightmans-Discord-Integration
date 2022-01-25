@@ -24,7 +24,7 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 public class AccountManager extends WorldSavedData{
 
-	private static final String DATA_NAME = LightmansDiscordIntegration.MODID + "_linked_accounts";
+	private static final String DATA_NAME = "lightmansconsole_linked_accounts";
 	
 	List<PendingLink> pendingLinks = new ArrayList<>();
 	public static List<PendingLink> getPendingLinks() { return get().pendingLinks; }
@@ -329,7 +329,7 @@ public class AccountManager extends WorldSavedData{
 		if(account != null)
 		{
 			manager.removeLinkedAccount(account);
-			return ImmutableList.of(MessageManager.M_UNLINKPLAYER_SUCCESS.format(playerName, account.getMemberName()));
+			return ImmutableList.of(MessageManager.M_UNLINKPLAYER_SUCCESS.format(account.getName(), account.getMemberName()));
 		}
 		
 		return ImmutableList.of(MessageManager.M_UNLINKPLAYER_FAIL.format(playerName));

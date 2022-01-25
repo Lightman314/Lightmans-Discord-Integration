@@ -24,11 +24,13 @@ public class MessageManager {
 	//public static final MessageEntry M_DUMMY = MessageEntry.create("dummy", "Comment", "Value", "arg1");
 	
 	//Chat message formats
-	public static final MessageEntry M_FORMAT_MINECRAFT = MessageEntry.create("chat_minecraft", "Format of discord messages in minecraft.\n{user} for discord user name.\n{message} for chat message.", "§6[§5DISCORD§6]§r <{user}> {message}", "user","message");
+	public static final MessageEntry M_FORMAT_MINECRAFT_PREFIX = MessageEntry.create("chat_minecraft_pre", "Prefix portion of discord messages in minecraft. Displayed as {prefix}{user}{postfix} {message}, where this is the prefix.", "[DISCORD] <");
+	public static final MessageEntry M_FORMAT_MINECRAFT_POSTFIX = MessageEntry.create("chat_minecraft_post", "Prefix portion of discord messages in minecraft. Displayed as {prefix}{user}{postfix} {message}, where this is the postfix.", ">");
 	public static final MessageEntry M_FORMAT_DISCORD = MessageEntry.create("chat_discord", "Format of minecraft messages in discord.\n{player} for player name.\n{message} for chat message.","**{player}:** {message}", "player","message");
 	public static final MessageEntry M_PLAYER_JOIN = MessageEntry.create("chat_playerjoin", "Format of player join message in discord.\n{minecraft} for default minecraft translation.\n{player} for player name.", "{minecraft}", "minecraft","player");
 	public static final MessageEntry M_PLAYER_LEAVE = MessageEntry.create("chat_playerleave", "Format of player leave message in discord.\n{minecraft} for default minecraft translation.\n{player} for player name.", "{minecraft}", "minecraft","player");
 	public static final MessageEntry M_PLAYER_ACHIEVEMENT = MessageEntry.create("chat_achievement", "Format of the achievement announcement in discord.\n{player} for the player.\n{achievename} for the achievement's name.\n{achievedesc} for the achievements description.", "{player} hast made the achievement **{achievename}**\\n*{achievedesc}*", "player","achievename","achievedesc");
+	public static final MessageEntry M_PLAYER_DEATH = MessageEntry.create("chat_playerdeath", "Format of the player death message in discord.\n{minecraft} for default minecraft death message.\n{player} for the player name.", "{minecraft}", "minecraft","player");
 	
 	//Console bot messages
 	public static final MessageEntry M_CONSOLEBOT_READY = MessageEntry.create("consolebot_ready", "Message sent when the console bot is ready for commands.", "Console Bot is ready!");
@@ -86,6 +88,7 @@ public class MessageManager {
 	public static final MessageEntry M_HELP_LINKUSER = MessageEntry.create("help_linkuser", "Help message for !linkuser.", "Links the replied pinged users account to the given minecraft username.");
 	public static final MessageEntry M_HELP_UNLINKPLAYER = MessageEntry.create("help_unlinkplayer", "Help message for !unlinkplayer.", "Unlinks the given minecraft user from their discord account.");
 	public static final MessageEntry M_HELP_DISCORDLIST = MessageEntry.create("help_discordlist", "Help message for !discordlist.", "Lists data about every linked minecraft/discord account. **WARNING: SENSITIVE DATA, DO NOT RUN IN A PUBLIC CHANNEL!**");
+	public static final MessageEntry M_HELP_DISCORDNAME = MessageEntry.create("help_discordname", "Help message for !discordname", "Get the discord members name of the given minecraft account.");
 	public static final MessageEntry M_HELP_IGN = MessageEntry.create("help_ign", "Help message for !ign.", "Get the ign of the pinged users minecraft account.");
 	
 	//Lightman's Currency Bot
@@ -113,7 +116,7 @@ public class MessageManager {
 	//Lightman's Currency !help
 	public static final MessageEntry M_HELP_LC_NOTIFICATIONS = MessageEntry.create("help_lc_notifications", "Help message for lightman's currency !notifications.", "Handle private currency notifications.");
 	public static final MessageEntry M_HELP_LC_SEARCH1 = MessageEntry.create("help_lc_search1", "Help message for lightman's currency !search <sales|purchases|barters|all>.", "List all universal trades selling items containing the searchText. Leave searchText empty to see all sales/purchases/barters.");
-	public static final MessageEntry M_HELP_LC_SEARCH2 = MessageEntry.create("help_lc_notifications", "Help message for lightman's currency !search <players|shops>.", "List all trades for universal traders with player/shop names containing the searchText. Leave searchText empty to see all traders trades.");
+	public static final MessageEntry M_HELP_LC_SEARCH2 = MessageEntry.create("help_lc_search2", "Help message for lightman's currency !search <players|shops>.", "List all trades for universal traders with player/shop names containing the searchText. Leave searchText empty to see all traders trades.");
 	
 	//Command outputs
 	//'/linkdiscord'

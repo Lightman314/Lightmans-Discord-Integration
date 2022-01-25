@@ -90,7 +90,7 @@ public class CurrencyListener extends SingleChannelListener{
 				{
 					List<String> output = new ArrayList<>();
 					output.add(AccountManager.currencyNotificationsEnabled(author) ? MessageManager.M_NOTIFICATIONS_ENABLED.get() : MessageManager.M_NOTIFICATIONS_DISABLED.get());
-					output.addAll(Lists.newArrayList(MessageManager.M_NOTIFICATIONS_HELP.get().split("\\n")));
+					output.addAll(Lists.newArrayList(MessageManager.M_NOTIFICATIONS_HELP.get().split("\n")));
 					
 					MessageUtil.sendTextMessage(channel, output);
 				}

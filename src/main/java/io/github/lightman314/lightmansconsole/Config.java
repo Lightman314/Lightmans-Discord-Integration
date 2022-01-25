@@ -18,18 +18,13 @@ public class Config {
 		
 		public final ForgeConfigSpec.ConfigValue<String> botToken;
 		public final ForgeConfigSpec.EnumValue<ChatMessageListener.ActivityType> botActivityType;
-		public final ForgeConfigSpec.ConfigValue<String> botActivityText;
 		
 		//Console Config
 		public final ForgeConfigSpec.ConfigValue<String> consoleChannel;
 		public final ForgeConfigSpec.ConfigValue<String> consoleCommandPrefix;
 		//Chat Config
 		public final ForgeConfigSpec.ConfigValue<String> chatChannel;
-		public final ForgeConfigSpec.ConfigValue<String> chatDiscordFormat;
-		public final ForgeConfigSpec.ConfigValue<String> chatMinecraftPrefix;
-		public final ForgeConfigSpec.ConfigValue<String> chatMinecraftPostfix;
 		public final ForgeConfigSpec.BooleanValue chatAllowPingEveryone;
-		public final ForgeConfigSpec.ConfigValue<String> chatTopic;
 		//Account Configs
 		//public final ForgeConfigSpec.ConfigValue<String> accountChannel;
 		//public final ForgeConfigSpec.ConfigValue<String> accountAdminChannel;
@@ -37,7 +32,6 @@ public class Config {
 		public final ForgeConfigSpec.ConfigValue<String> accountCommandPrefix;
 		public final ForgeConfigSpec.BooleanValue accountWhitelist;
 		public final ForgeConfigSpec.ConfigValue<List<? extends String>> accountChannelBlacklist;
-		public final ForgeConfigSpec.ConfigValue<String> accountLinkMessage;
 		
 		//Currency Configs
 		public final ForgeConfigSpec.ConfigValue<String> currencyChannel;
@@ -54,9 +48,6 @@ public class Config {
 			this.botActivityType = builder
 					.comment("The bots activity type.")
 					.defineEnum("activityType", ActivityType.STREAMING);
-			this.botActivityText = builder
-					.comment("The bots activity text.","%playerCount%: Online Player Count","%maxPlayers%: Maximum allowed players.")
-					.define("activityText", "%playerCount% players online");
 			
 			//Chat Bot Settings
 			builder.comment("Chat Formatting Settings").push("chat");
@@ -64,21 +55,9 @@ public class Config {
 			this.chatChannel = builder
 					.comment("The server_chat channel.")
 					.define("channel", "000000000000000000");
-			this.chatDiscordFormat = builder
-					.comment("The format that chat messages are displayed in the #server_chat channel.","%s is the players name.")
-					.define("format_discord", "%s:");
-			this.chatMinecraftPrefix = builder
-					.comment("The format that discord messages are displayed in the minecraft chat channel before the senders name is displayed.")
-					.define("format_minecraft_prefix", "§6[§5DISCORD§6]§r <");
-			this.chatMinecraftPostfix = builder
-					.comment("The format that discord messages are displayed in the minecraft chat channel before the senders name is displayed.")
-					.define("format_minecraft_postfix", ">");
 			this.chatAllowPingEveryone = builder
 					.comment("Whether minecraft players can ping @everyone in their chat messages.")
 					.define("ping_everyone", false);
-			this.chatTopic = builder
-					.comment("The format of the chat topic.","%playerCount%: Online Player Count","%maxPlayers%: Maximum allowed players.")
-					.define("channel_topic", "There are %playerCount% players online.");
 			
 			builder.pop();
 			
@@ -114,9 +93,6 @@ public class Config {
 			this.accountChannelBlacklist = builder
 					.comment("List of channel id's that the account bot should ignore commands from.")
 					.defineList("channelBlacklist", new ArrayList<>(), o -> o instanceof String);
-			this.accountLinkMessage = builder
-					.comment("PM sent to users linked by the !linkuser command. New lines can be defined by a \\n")
-					.define("linkedWelcomeMessage", "");
 			
 			builder.pop();
 			

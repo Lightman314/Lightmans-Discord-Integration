@@ -6,10 +6,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
+import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.MessageArgument;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Player;
 
 public class CommandDiscordLink {
@@ -36,17 +37,25 @@ public class CommandDiscordLink {
 		int output = AccountManager.tryLinkUser(player, linkKey);
 		if(output == 1)
 		{
-			source.sendSuccess(new TextComponent("You account has been successfully linked to your discord account."), true);
+			String discordName = "ERROR";
+			LinkedAccount account = AccountManager.getLinkedAccountFromPlayer(player);
+			if(account != null)
+				discordName = account.getMemberName();
+			source.sendSuccess(MessageManager.M_COMMAND_LINK_COMPLETE.formatComponent(discordName), true);
 			return 1;
 		}
 		else if(output == 0)
 		{
-			source.sendFailure(new TextComponent(linkKey + " is not a valid link key."));
+			source.sendFailure(MessageManager.M_COMMAND_LINK_BADKEY.formatComponent(linkKey));
 			return 0;
 		}
 		else if(output == -1)
 		{
-			source.sendFailure(new TextComponent("Your account is already linked to a discord account."));
+			String discordName = "ERROR";
+			LinkedAccount account = AccountManager.getLinkedAccountFromPlayer(player);
+			if(account != null)
+				discordName = account.getMemberName();
+			source.sendFailure(MessageManager.M_COMMAND_LINK_ALREADYLINKED.formatComponent(discordName));
 			return 0;
 		}
 		return 0;

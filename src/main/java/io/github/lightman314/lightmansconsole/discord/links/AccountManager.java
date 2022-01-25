@@ -3,12 +3,12 @@ package io.github.lightman314.lightmansconsole.discord.links;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.authlib.GameProfile;
 
-import io.github.lightman314.lightmansconsole.LightmansConsole;
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -26,7 +26,7 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 @Mod.EventBusSubscriber
 public class AccountManager extends SavedData{
 
-	private static final String DATA_NAME = LightmansConsole.MODID + "_linked_accounts";
+	private static final String DATA_NAME = "lightmansconsole_linked_accounts";
 	
 	List<PendingLink> pendingLinks = new ArrayList<>();
 	public static List<PendingLink> getPendingLinks() { return get().pendingLinks; }
@@ -314,17 +314,17 @@ public class AccountManager extends SavedData{
 		if(account != null)
 		{
 			manager.removeLinkedAccount(account);
-			return ImmutableList.of("Your discord account has been successfully unlinked from '" + account.getName() + "'.");
+			return ImmutableList.of(MessageManager.M_UNLINK_SUCCESS.format(account.getName()));
 		}
 		
 		PendingLink pendingLink = manager.getPendingLinkFromUser(user);
 		if(pendingLink != null)
 		{
 			manager.removePendingLink(pendingLink);
-			return ImmutableList.of("You discord accounts pending link has been removed.");
+			return ImmutableList.of(MessageManager.M_UNLINK_PENDING.get());
 		}
 		
-		return ImmutableList.of("Your discord account is not linked to a minecraft account on this server.");
+		return ImmutableList.of(MessageManager.M_UNLINK_FAIL.get());
 	}
 	
 	public static List<String> tryForceUnlinkUser(JDA jda, String playerName)
@@ -334,30 +334,21 @@ public class AccountManager extends SavedData{
 		if(account != null)
 		{
 			manager.removeLinkedAccount(account);
-			AtomicReference<User> currentLinkedUser = new AtomicReference<>();
-			String currentLinkedDiscordID = account.discordID;
-			jda.getUsers().forEach(u ->{
-				if(u.getId().equals(currentLinkedDiscordID))
-					currentLinkedUser.set(u);
-			});
-			if(currentLinkedUser.get() != null)
-				return ImmutableList.of("'" + playerName + "' has been unlinked from " + currentLinkedUser.get().getName() + "'s account.");
-			else
-				return ImmutableList.of("'" + playerName + "' has been unlinked from the unknown users account.");
+			return ImmutableList.of(MessageManager.M_UNLINKPLAYER_SUCCESS.format(account.getName(), account.getMemberName()));
 		}
 		
-		return ImmutableList.of("'" + playerName + "' is not linked to any accounts.");
+		return ImmutableList.of(MessageManager.M_UNLINKPLAYER_FAIL.format(playerName));
 	}
 	
 	public static List<String> tryLinkUser2(User user, String playerName)
 	{
 		AccountManager manager = get();
 		if(manager.getAccountFromMinecraftName(playerName) != null)
-			return ImmutableList.of("'" + playerName + "' is already linked to a discord account.");
+			return ImmutableList.of(MessageManager.M_LINKUSER_PLAYERLINKED.format(playerName));
 		if(manager.getAccountFromDiscordID(user.getId()) != null)
-			return ImmutableList.of("'" + user.getName() + "' is already linked to a minecraft account.");
+			return ImmutableList.of(MessageManager.M_LINKUSER_USERLINKED.format(user.getName(), manager.getAccountFromDiscordID(user.getId()).getName()));
 		if(manager.getPendingLinkFromUser(user) != null)
-			return ImmutableList.of("'" + user.getName() + "' already has a pending link.");
+			return ImmutableList.of(MessageManager.M_LINKUSER_USERPENDING.format(user.getName()));
 		
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		GameProfile playerProfile = server.getProfileCache().get(playerName).orElse(null);
@@ -366,11 +357,11 @@ public class AccountManager extends SavedData{
 			LinkedAccount newAccount = new LinkedAccount(playerProfile.getId(), user.getId());
 			manager.linkedAccounts.add(newAccount);
 			manager.setDirty();
-			LightmansConsole.LOGGER.info("Linked discord #" + user.getId() + " with '" + playerProfile.getName() + "' (" + playerProfile.getId().toString() + ")");
-			return ImmutableList.of("Successfully linked " + user.getName() + " to '" + playerProfile.getName() +"'");
+			LightmansDiscordIntegration.LOGGER.info("Linked discord #" + user.getId() + " with '" + playerProfile.getName() + "' (" + playerProfile.getId().toString() + ")");
+			return ImmutableList.of(MessageManager.M_LINKUSER_SUCCESS.format(user.getName(), newAccount.getName()));
 		}
 		else
-			return ImmutableList.of(playerName + " is not a valid Minecraft account.");
+			return ImmutableList.of(MessageManager.M_LINKUSER_NO_ACCOUNT.format(playerName));
 	}
 
 	//Currency notification functions

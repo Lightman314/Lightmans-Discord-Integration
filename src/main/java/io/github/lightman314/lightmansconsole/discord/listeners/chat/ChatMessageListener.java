@@ -7,8 +7,9 @@ import java.util.UUID;
 import com.google.common.base.Supplier;
 
 import io.github.lightman314.lightmansconsole.Config;
-import io.github.lightman314.lightmansconsole.LightmansConsole;
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Member;
@@ -43,12 +44,12 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
-		super(channelID, () -> LightmansConsole.PROXY.getJDA());
+		super(channelID, () -> LightmansDiscordIntegration.PROXY.getJDA());
 		instance = this;
 		this.server = ServerLifecycleHooks.getCurrentServer();
-		this.sendTextMessage("Server is booting.");
-		this.setTopic("Server is booting.");
-		this.setActivityText("Server is booting.");
+		this.sendTextMessage(MessageManager.M_SERVER_BOOT.get());
+		this.setTopic(MessageManager.M_TOPIC_BOOT.get());
+		this.setActivityText(MessageManager.M_ACTIVITY_BOOT.get());
 	}
 	
 	@Override
@@ -75,7 +76,7 @@ public class ChatMessageListener extends SingleChannelListener {
 		}
 		Component message = formatDiscordMessage(event.getMember(), event.getMessage());
 		server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
-		LightmansConsole.LOGGER.info(message.getString());
+		LightmansDiscordIntegration.LOGGER.info(message.getString());
 	}
 	
 	public void updatePlayerCount() { this.updatePlayerCount(false); }
@@ -83,9 +84,9 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void updatePlayerCount(boolean shrink)
 	{
 		//Update the channel topic
-		this.setTopic(this.formatPlayerString(Config.SERVER.chatTopic.get(), shrink));
+		this.setTopic(MessageManager.M_TOPIC_TEXT.format(this.getPlayerCount(shrink)));
 		//Update the bot's activity
-		this.setActivityText(this.formatPlayerString(Config.SERVER.botActivityText.get(), shrink));
+		this.setActivityText(MessageManager.M_ACTIVITY_TEXT.format(this.getPlayerCount(shrink), this.getPlayerLimit()));
 	}
 	
 	public void setActivityText(String text)
@@ -112,10 +113,14 @@ public class ChatMessageListener extends SingleChannelListener {
 		}
 	}
 	
-	private String formatPlayerString(String format, boolean shrink)
+	private int getPlayerCount(boolean shrink)
 	{
-		return format.replace("%playerCount%", Integer.toString(shrink ? getPlayerCount() - 1 : getPlayerCount()))
-				.replace("%maxPlayers%", Integer.toString(ServerLifecycleHooks.getCurrentServer().getMaxPlayers()));
+		return shrink ? this.getPlayerCount() - 1 : this.getPlayerCount();
+	}
+	
+	private int getPlayerLimit()
+	{
+		return ServerLifecycleHooks.getCurrentServer().getMaxPlayers();
 	}
 	
 	private int getPlayerCount()
@@ -132,7 +137,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	@SubscribeEvent
 	public void onServerMessage(ServerChatEvent event)
 	{
-		String message = Config.SERVER.chatDiscordFormat.get().replace("%s", event.getPlayer().getDisplayName().getString()) + " " + MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild());
+		String message = MessageManager.M_FORMAT_DISCORD.format(event.getPlayer().getDisplayName().getString(), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
 		if(instance != null)
 			instance.sendTextMessage(message);
 	}
@@ -142,7 +147,8 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		if(instance != null)
 		{
-			instance.sendTextMessage(new TranslatableComponent("multiplayer.player.joined", event.getPlayer().getDisplayName()).getString());
+			Component playerName = event.getPlayer().getDisplayName();
+			instance.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(new TranslatableComponent("multiplayer.player.joined", playerName), playerName));
 			instance.updatePlayerCount();
 		}
 	}
@@ -152,7 +158,8 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		if(instance != null)
 		{
-			instance.sendTextMessage(new TranslatableComponent("multiplayer.player.left", event.getPlayer().getDisplayName()).getString());
+			Component playerName = event.getPlayer().getDisplayName();
+			instance.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(new TranslatableComponent("multiplayer.player.left", playerName), playerName));
 			//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
 			instance.updatePlayerCount(true);
 		}
@@ -172,33 +179,30 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		if(instance != null && ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat())
 		{
-			List<String> output = new ArrayList<>();
-			output.add(ev.getPlayer().getName().getString() + " hast made the advancement **" + ev.getAdvancement().getDisplay().getTitle().getString() + "**");
-			output.add("*" + ev.getAdvancement().getDisplay().getDescription().getString() + "*");
-			instance.sendTextMessage(output);
+			instance.sendTextMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getPlayer().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
 		}
 	}
 	
 	@SubscribeEvent
 	public void onServerReady(ServerStartedEvent event)
 	{
-		this.sendTextMessage("Server is ready for players!");
+		this.sendTextMessage(MessageManager.M_SERVER_READY.get());
 		this.updatePlayerCount();
 	}
 	
 	@SubscribeEvent
 	public void onServerStop(ServerStoppingEvent event)
 	{
-		this.sendTextMessage("Server has stopped.");
-		this.setTopic("Server is offline.");
-		this.setActivityText("Server is offline.");
+		this.sendTextMessage(MessageManager.M_SERVER_STOP.get());
+		this.setTopic(MessageManager.M_TOPIC_OFFLINE.get());
+		this.setActivityText(MessageManager.M_ACTIVITY_OFFLINE.get());
 	}
 	
 	public Component formatDiscordMessage(Member member, Message message)
 	{
-		return new TextComponent(Config.SERVER.chatMinecraftPrefix.get())
+		return new TextComponent(MessageManager.M_FORMAT_MINECRAFT_PREFIX.get())
 				.append(formatMemberName(member))
-				.append(Config.SERVER.chatMinecraftPostfix.get())
+				.append(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.get())
 				.append(" ")
 				.append(MessageUtil.formatMessageText(message, this.getGuild()));
 	}

@@ -5,14 +5,14 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.Lists;
 
 import io.github.lightman314.lightmansconsole.Config;
-import io.github.lightman314.lightmansconsole.LightmansConsole;
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PendingLink;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.util.MemberUtil;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
 import net.dv8tion.jda.api.JDA;
@@ -48,7 +48,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	
 	public AccountMessageListener()
 	{
-		this.jdaSource = () -> LightmansConsole.PROXY.getJDA();
+		this.jdaSource = () -> LightmansDiscordIntegration.PROXY.getJDA();
 		this.server = ServerLifecycleHooks.getCurrentServer();
 		commandSource = getCommandSource();
 		MinecraftForge.EVENT_BUS.post(new RegisterAccountCommandEvent(this));
@@ -79,11 +79,11 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 			{
 				if(!isAdmin)
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), "You do not have permission to run that command.");
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.get());
 					return;
 				}
 				String subcommand = command.substring(8);
-				LightmansConsole.LOGGER.info(command + " -> " + subcommand);
+				LightmansDiscordIntegration.LOGGER.info(command + " -> " + subcommand);
 				Member linkingUser = MemberUtil.getMemberFromPing(event.getGuild(), subcommand);
 				String playerName = "";
 				int endIndex = subcommand.indexOf('>');
@@ -91,7 +91,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 					playerName = subcommand.substring(endIndex + 1).replace(" ", ""); //Wipe empty space from the name
 				else
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), "No user was pinged.");
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_NOPING.get());
 					return;
 				}
 				if(linkingUser != null)
@@ -105,19 +105,18 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 						MessageUtil.sendTextMessage(event.getTextChannel(), commandOutput);
 						commandOutput.clear();
 					}
-					List<String> message = Lists.newArrayList(Config.SERVER.accountLinkMessage.get().split("\\n"));
-					MessageUtil.sendPrivateMessage(linkingUser.getUser(), message);
+					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.get());
 				}
 				else
 				{
-					MessageUtil.sendTextMessage(event.getTextChannel(), "Error extracting user from ping.");
+					MessageUtil.sendTextMessage(event.getTextChannel(), MessageManager.M_ERROR_PING.get());
 				}
 			}
 			else if(command.startsWith("unlinkplayer "))
 			{
 				if(!isAdmin)
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), "You do not have permission to run that command.");
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.get());
 					return;
 				}
 				String playerName = command.substring(13);
@@ -128,11 +127,11 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 			{
 				PendingLink pendingLink = AccountManager.createPendingLink(event.getAuthor());
 				if(pendingLink == null)
-					MessageUtil.sendTextMessage(event.getChannel(), "Your discord account is already linked to an account.");
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_LINK_FAIL.get());
 				else //Send PM to user with their link key.
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), "Your link key has been sent to you via private message.");
-					MessageUtil.sendPrivateMessage(event.getAuthor(), "Your link key is '" + pendingLink.linkKey + "'.\nLog in to the server and run '/" + CommandDiscordLink.COMMAND_LITERAL + " " + pendingLink.linkKey + "' to finish linking your account.");
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_LINK_SUCCESS.get());
+					MessageUtil.sendPrivateMessage(event.getAuthor(), MessageManager.M_LINK_MESSAGE.format(pendingLink.linkKey, "/" + CommandDiscordLink.COMMAND_LITERAL + " " + pendingLink.linkKey));
 				}
 			}
 			else if(command.startsWith("unlink"))
@@ -145,7 +144,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 			{
 				if(!isAdmin)
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), "You do not have permission to run that command.");
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.get());
 					return;
 				}
 				List<String> output = new ArrayList<>();
@@ -174,14 +173,14 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				String commandPrefix = Config.SERVER.accountCommandPrefix.get();
 				List<String> output = new ArrayList<>();
 				output.add("Minecraft-Discord Account Linkage Help:");
-				output.add(commandPrefix + "help - Show this help info.");
-				output.add(commandPrefix + "link - Generate a link key to start the linking process.");
-				output.add(commandPrefix + "unlink - Unlink your discord account from your minecraft username.");
+				output.add(commandPrefix + "help - " + MessageManager.M_HELP_HELP.get());
+				output.add(commandPrefix + "link - " + MessageManager.M_HELP_LINK.get());
+				output.add(commandPrefix + "unlink - " + MessageManager.M_HELP_UNLINK.get());
 				if(isAdmin)
 				{
-					output.add(commandPrefix + "linkuser @user <MINECRAFT_USERNAME> - Links the replied pinged users account to the given minecraft username.");
-					output.add(commandPrefix + "unlinkplayer <MINECRAFT_USERNAME> - Unlinks the given minecraft user from their discord account.");
-					output.add(commandPrefix + "discordlist - Lists data about every linked minecraft/discord account. **WARNING: SENSITIVE DATA, DO NOT RUN IN A PUBLIC CHANNEL!**");
+					output.add(commandPrefix + "linkuser @user <MINECRAFT_USERNAME> - " + MessageManager.M_HELP_LINKUSER.get());
+					output.add(commandPrefix + "unlinkplayer <MINECRAFT_USERNAME> - " + MessageManager.M_HELP_UNLINKPLAYER.get());
+					output.add(commandPrefix + "discordlist - " + MessageManager.M_HELP_DISCORDLIST.get());
 				}
 				this.REGISTERED_COMMANDS.forEach(c -> {
 					if(c.canRun(isAdmin))

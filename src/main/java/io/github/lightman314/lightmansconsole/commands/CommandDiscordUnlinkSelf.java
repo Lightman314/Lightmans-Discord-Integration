@@ -7,9 +7,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Player;
 
 public class CommandDiscordUnlinkSelf {
@@ -31,12 +31,12 @@ public class CommandDiscordUnlinkSelf {
 		if(account != null)
 		{
 			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendSuccess(new TextComponent(player.getName().getString() + " is no longer linked to your discord account."), true);
+			commandContext.getSource().sendSuccess(MessageManager.M_COMMAND_UNLINK_COMPLETE.formatComponent(account.getMemberName()), true);
 			return 1;
 		}
 		else
 		{
-			commandContext.getSource().sendFailure(new TextComponent("Your account is not linked to a discord account."));
+			commandContext.getSource().sendFailure(MessageManager.M_COMMAND_UNLINK_FAILED.formatComponent());
 		}
 		return 0;
 	}

@@ -6,6 +6,7 @@ import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordList;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkOther;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkSelf;
+import io.github.lightman314.lightmansconsole.commands.CommandReloadMessages;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -18,10 +19,10 @@ public class ForgeEventListener {
 	 @SubscribeEvent
 	 public static void onServerStop(ServerStoppedEvent event)
 	 {
-		 if(LightmansConsole.PROXY.getJDA() != null)
+		 if(LightmansDiscordIntegration.PROXY.getJDA() != null)
 		 {
-			 LightmansConsole.PROXY.getJDA().shutdownNow();
-			 LightmansConsole.PROXY.clearJDA();
+			 LightmansDiscordIntegration.PROXY.getJDA().shutdownNow();
+			 LightmansDiscordIntegration.PROXY.clearJDA();
 		 }
 	 }
 	 
@@ -37,7 +38,8 @@ public class ForgeEventListener {
 		 CommandDiscordUnlinkOther.register(commandDispatcher);
 		 //List command
 		 CommandDiscordList.register(commandDispatcher);
-		 
+		 //Reload Messages Command
+		 CommandReloadMessages.register(commandDispatcher);
 	 }
 	
 }

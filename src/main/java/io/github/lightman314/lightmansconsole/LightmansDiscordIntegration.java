@@ -7,6 +7,7 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import javax.security.auth.login.LoginException;
@@ -14,16 +15,18 @@ import javax.security.auth.login.LoginException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import io.github.lightman314.lightmansconsole.events.CreateMessageEntriesEvent;
 import io.github.lightman314.lightmansconsole.events.JDAInitializedEvent;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.proxy.Proxy;
 import io.github.lightman314.lightmansconsole.proxy.ServerProxy;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod(LightmansConsole.MODID)
-public class LightmansConsole
+@Mod(LightmansDiscordIntegration.MODID)
+public class LightmansDiscordIntegration
 {
 	
-	public static final String MODID = "lightmansconsole";
+	public static final String MODID = "lightmansdiscord";
 	
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
@@ -32,9 +35,10 @@ public class LightmansConsole
     private static boolean lightmansCurrencyLoaded = false;
     public static boolean isLightmansCurrencyLoaded() { return lightmansCurrencyLoaded; }
 
-    public LightmansConsole() {
+    public LightmansDiscordIntegration() {
         // Register the setup methods
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onConfigLoad);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onServerLoad);
         
         //Register Config
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.serverSpec);
@@ -44,12 +48,23 @@ public class LightmansConsole
         
         lightmansCurrencyLoaded = ModList.get().isLoaded("lightmanscurrency");
         
-        //LOGGER.info("Proxy is of type: " + PROXY.getClass().getName());
-        
+       if(!(PROXY instanceof ServerProxy))
+       {
+    	   LOGGER.error("Attempting to run Lightman's Discord Integration on a client. Mod will do nothing, and I reccommend that you remove this from your mods folder, as it just takes up resources.");
+       }
+       
+       
+       
+    }
+    
+    private void onServerLoad(FMLDedicatedServerSetupEvent event)
+    {
+    	MinecraftForge.EVENT_BUS.post(new CreateMessageEntriesEvent());
+    	MessageManager.reload();
     }
     
     //Load the JDA after the config is loaded, to assure that we load the correct values
-    public void onConfigLoad(ModConfigEvent.Loading event) {
+    private void onConfigLoad(ModConfigEvent.Loading event) {
     	
     	if(event.getConfig().getModId().equals(MODID) && event.getConfig().getSpec() == Config.serverSpec)
     	{

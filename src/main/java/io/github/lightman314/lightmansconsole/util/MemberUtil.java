@@ -1,6 +1,6 @@
 package io.github.lightman314.lightmansconsole.util;
 
-import io.github.lightman314.lightmansconsole.LightmansConsole;
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -21,14 +21,14 @@ public class MemberUtil {
 				String id = ping.substring(2, endIndex);
 				if(!"0123456789".contains(id.substring(0,1))) //If the first character of the extracted id is not a number, then it must've been a <@! format ping
 					id = id.substring(1);
-				LightmansConsole.LOGGER.info("Extracted '" + id + "' from '" + pingText + "'");
+				LightmansDiscordIntegration.LOGGER.info("Extracted '" + id + "' from '" + pingText + "'");
 				return id;
 			}
 			else
-				LightmansConsole.LOGGER.warn("'" + pingText + "' has no '>'");
+				LightmansDiscordIntegration.LOGGER.warn("'" + pingText + "' has no '>'");
 		}
 		else
-			LightmansConsole.LOGGER.warn("'" + pingText + "' does not start with '<@!'");
+			LightmansDiscordIntegration.LOGGER.warn("'" + pingText + "' does not start with '<@!'");
 		return "";
 	}
 	
@@ -37,9 +37,9 @@ public class MemberUtil {
 		String id = getUserIdFromPing(pingText);
 		User user = id.isEmpty() ? null : jda.getUserById(id);
 		if(user == null && !id.isEmpty())
-			LightmansConsole.LOGGER.warn("No guild member could be found with id '" + id + "'");
+			LightmansDiscordIntegration.LOGGER.warn("No guild member could be found with id '" + id + "'");
 		else if(user != null)
-			LightmansConsole.LOGGER.info("Found member with id '" + id + "'");
+			LightmansDiscordIntegration.LOGGER.info("Found member with id '" + id + "'");
 		return user;
 	}
 	
@@ -48,9 +48,9 @@ public class MemberUtil {
 		String id = getUserIdFromPing(pingText);
 		Member member = id.isEmpty() ? null : guild.getMemberById(id);
 		if(member == null && !id.isEmpty())
-			LightmansConsole.LOGGER.warn("No guild member could be found with id '" + id + "'");
+			LightmansDiscordIntegration.LOGGER.warn("No guild member could be found with id '" + id + "'");
 		else if(member != null)
-			LightmansConsole.LOGGER.info("Found member with id '" + id + "'");
+			LightmansDiscordIntegration.LOGGER.info("Found member with id '" + id + "'");
 		return member;
 	}
 	

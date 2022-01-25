@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Supplier;
 
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -43,22 +44,22 @@ public abstract class AccountCommand {
 	
 	public String accountNotLinkedErrorSelf()
 	{
-		return "Your account is not linked to a minecraft account.";
+		return MessageManager.M_ERROR_NOTLINKEDSELF.get();
 	}
 	
 	public String accountNotLinkedErrorForUser(User user)
 	{
-		return user.getName() + " is not linked to a minecraft account.";
+		return MessageManager.M_ERROR_NOTLINKED.format(user.getName());
 	}
 	
 	public String accountNotLinkedErrorForMember(Member member)
 	{
-		return member.getEffectiveName() + " is not linked to a minecraft account.";
+		return MessageManager.M_ERROR_NOTLINKED.format(member.getEffectiveName());
 	}
 	
 	public String cannotGetUserFromPingError()
 	{
-		return "**ERROR**: Could not extract user from ping.";
+		return MessageManager.M_ERROR_PING.get();
 	}
 	
 }

@@ -200,9 +200,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		return new StringTextComponent(MessageManager.M_FORMAT_MINECRAFT_PREFIX.get())
 				.append(formatMemberName(member))
-				.appendString(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.get())
-				.appendString(" ")
-				.append(MessageUtil.formatMessageText(message,  this.getGuild()));
+				.appendString(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.format(MessageUtil.formatMessageText(message,  this.getGuild())));
 		
 	}
 	

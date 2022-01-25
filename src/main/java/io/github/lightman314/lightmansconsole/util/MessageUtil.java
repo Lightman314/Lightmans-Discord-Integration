@@ -13,8 +13,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
 
 public class MessageUtil {
 
@@ -222,7 +220,7 @@ public class MessageUtil {
 	 * @param guild The discord guild from which to search for players, roles, and channels from.
 	 * @return The discord message now formatted as a minecraft text component for display in-game.
 	 */
-	public static ITextComponent formatMessageText(Message message, Guild guild)
+	public static String formatMessageText(Message message, Guild guild)
 	{
 		String rawMessage = message.getContentRaw();
 		String messageText = "";
@@ -334,7 +332,7 @@ public class MessageUtil {
 			}
 		}
 		
-		return new StringTextComponent(messageText);
+		return messageText;
 	}
 	
 }

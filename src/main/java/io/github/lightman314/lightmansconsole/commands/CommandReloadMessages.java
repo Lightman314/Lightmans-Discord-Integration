@@ -12,16 +12,14 @@ import net.minecraft.util.text.StringTextComponent;
 
 public class CommandReloadMessages {
 
-	public static final String COMMAND_LITERAL = "linkdiscord";
-	
 	public static void register(CommandDispatcher<CommandSource> dispatcher)
 	{
-		LiteralArgumentBuilder<CommandSource> discordLinkCommand
-			= Commands.literal("discordreload")
+		LiteralArgumentBuilder<CommandSource> reloadCommand
+			= Commands.literal("reloadmessages")
 				.requires((commandSource) -> commandSource.hasPermissionLevel(2))
 				.executes(CommandReloadMessages::reloadMessages);
 		
-		dispatcher.register(discordLinkCommand);
+		dispatcher.register(reloadCommand);
 	}
 	
 	static int reloadMessages(CommandContext<CommandSource> commandContext) throws CommandSyntaxException{

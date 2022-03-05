@@ -38,14 +38,12 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public enum ActivityType { DISABLED, LISTENING, PLAYING, WATCHING, COMPETING, STREAMING }
 	
-	private static ChatMessageListener instance = null;
 	private final MinecraftServer server;
 	private final UUID senderID = new UUID(0,0);
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
 		super(channelID, () -> LightmansDiscordIntegration.PROXY.getJDA());
-		instance = this;
 		this.server = ServerLifecycleHooks.getCurrentServer();
 		this.sendTextMessage(MessageManager.M_SERVER_BOOT.get());
 		this.setTopic(MessageManager.M_TOPIC_BOOT.get());
@@ -137,65 +135,73 @@ public class ChatMessageListener extends SingleChannelListener {
 	@SubscribeEvent
 	public void onServerMessage(ServerChatEvent event)
 	{
-		String message = MessageManager.M_FORMAT_DISCORD.format(event.getPlayer().getDisplayName().getString(), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
-		if(instance != null)
-			instance.sendTextMessage(message);
+		try {
+			String message = MessageManager.M_FORMAT_DISCORD.format(event.getPlayer().getDisplayName().getString(), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
+			this.sendTextMessage(message);
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	@SubscribeEvent
 	public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event)
 	{
-		if(instance != null)
-		{
+		try {
 			Component playerName = event.getPlayer().getDisplayName();
-			instance.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(new TranslatableComponent("multiplayer.player.joined", playerName), playerName));
-			instance.updatePlayerCount();
-		}
+			this.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(new TranslatableComponent("multiplayer.player.joined", playerName), playerName));
+			this.updatePlayerCount();
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	@SubscribeEvent
 	public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event)
 	{
-		if(instance != null)
-		{
+		try {
 			Component playerName = event.getPlayer().getDisplayName();
-			instance.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(new TranslatableComponent("multiplayer.player.left", playerName), playerName));
+			this.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(new TranslatableComponent("multiplayer.player.left", playerName), playerName));
 			//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
-			instance.updatePlayerCount(true);
-		}
+			this.updatePlayerCount(true);
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	@SubscribeEvent
 	public void onPlayerDeath(LivingDeathEvent event)
 	{
-		if(event.getEntity() instanceof Player && instance != null)
-		{
-			instance.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
-		}
+		try {
+			if(event.getEntity() instanceof Player)
+			{
+				this.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
+			}
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	@SubscribeEvent
 	public void onAchievementGet(AdvancementEvent ev)
 	{
-		if(instance != null && ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat())
-		{
-			instance.sendTextMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getPlayer().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
-		}
+		try {
+			if(ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat())
+			{
+				this.sendTextMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getPlayer().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
+			}
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	@SubscribeEvent
 	public void onServerReady(ServerStartedEvent event)
 	{
-		this.sendTextMessage(MessageManager.M_SERVER_READY.get());
-		this.updatePlayerCount();
+		try {
+			this.sendTextMessage(MessageManager.M_SERVER_READY.get());
+			this.updatePlayerCount();
+		} catch(Exception e) { e.printStackTrace(); }
+		
 	}
 	
 	@SubscribeEvent
 	public void onServerStop(ServerStoppingEvent event)
 	{
-		this.sendTextMessage(MessageManager.M_SERVER_STOP.get());
-		this.setTopic(MessageManager.M_TOPIC_OFFLINE.get());
-		this.setActivityText(MessageManager.M_ACTIVITY_OFFLINE.get());
+		try {
+			this.sendTextMessage(MessageManager.M_SERVER_STOP.get());
+			this.setTopic(MessageManager.M_TOPIC_OFFLINE.get());
+			this.setActivityText(MessageManager.M_ACTIVITY_OFFLINE.get());
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	public Component formatDiscordMessage(Member member, Message message)

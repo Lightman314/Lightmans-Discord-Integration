@@ -377,9 +377,11 @@ public class CurrencyListener extends SingleChannelListener{
 	{
 		//LightmansConsole.LOGGER.info("Sending Pending Messages");
 		this.pendingMessages.forEach((userId, messages)->{
-			User user = this.getJDA().getUserById(userId);
-			if(user != null)
-				MessageUtil.sendPrivateMessage(user, messages);
+			try {
+				User user = this.getJDA().getUserById(userId);
+				if(user != null)
+					MessageUtil.sendPrivateMessage(user, messages);
+			} catch(Exception e) { e.printStackTrace(); }
 		});
 		this.pendingMessages.clear();
 	}
@@ -420,12 +422,14 @@ public class CurrencyListener extends SingleChannelListener{
 		
 		@Override
 		public void run() {
-			if(this.event.getData() == null) //Abort if the trader was removed.
-				return;
-			if(event.getData().getCoreSettings().hasCustomName())
-				cl.sendTextMessage(MessageManager.M_NEWTRADER_NAMED.format(this.event.getData().getCoreSettings().getOwnerName(), event.getData().getCoreSettings().getCustomName()));
-			else
-				cl.sendTextMessage(MessageManager.M_NEWTRADER.format(this.event.getData().getCoreSettings().getOwnerName()));
+			try {
+				if(this.event.getData() == null) //Abort if the trader was removed.
+					return;
+				if(event.getData().getCoreSettings().hasCustomName())
+					cl.sendTextMessage(MessageManager.M_NEWTRADER_NAMED.format(this.event.getData().getCoreSettings().getOwnerName(), event.getData().getCoreSettings().getCustomName()));
+				else
+					cl.sendTextMessage(MessageManager.M_NEWTRADER.format(this.event.getData().getCoreSettings().getOwnerName()));
+			} catch(Exception e) { e.printStackTrace(); }
 		}
 		
 	}

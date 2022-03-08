@@ -24,6 +24,7 @@ import io.github.lightman314.lightmanscurrency.common.universal_traders.data.Uni
 import io.github.lightman314.lightmanscurrency.events.TradeEvent.PostTradeEvent;
 import io.github.lightman314.lightmanscurrency.events.UniversalTraderEvent.UniversalTradeCreateEvent;
 import io.github.lightman314.lightmanscurrency.trader.IItemTrader;
+import io.github.lightman314.lightmanscurrency.trader.settings.PlayerReference;
 import io.github.lightman314.lightmanscurrency.trader.tradedata.ItemTradeData;
 import io.github.lightman314.lightmanscurrency.trader.tradedata.ItemTradeData.ItemTradeType;
 import net.dv8tion.jda.api.entities.Message;
@@ -289,71 +290,72 @@ public class CurrencyListener extends SingleChannelListener{
 	@SubscribeEvent
 	public void onTradeCarriedOut(PostTradeEvent event)
 	{
-		LinkedAccount account;
 		try {
-			account = AccountManager.getLinkedAccountFromPlayerID(event.getTrader().getCoreSettings().getOwner().id);
-		} catch(Exception e) { e.printStackTrace(); return; }
-		
-		if(account != null)
-		{
-			User linkedUser = this.getJDA().getUserById(account.discordID);
-			if(AccountManager.currencyNotificationsEnabled(linkedUser))
+			PlayerReference recipient = event.getTrader().getCoreSettings().getOwner();
+			if(event.getTrader().getCoreSettings().getTeam() != null)
+				recipient = event.getTrader().getCoreSettings().getTeam().getOwner();
+			LinkedAccount account = AccountManager.getLinkedAccountFromPlayerID(recipient.id);
+			if(account != null)
 			{
-				if(event.getTrade() instanceof ItemTradeData)
+				User linkedUser = this.getJDA().getUserById(account.discordID);
+				if(AccountManager.currencyNotificationsEnabled(linkedUser))
 				{
-					ItemTradeData itemTrade = (ItemTradeData)event.getTrade();
-					StringBuffer message = new StringBuffer();
-					//Customer name
-					message.append(event.getPlayer().getName().getString());
-					//Action (bought, sold, ???)
-					boolean isBarter = itemTrade.getTradeType() == ItemTradeType.BARTER;
-					switch(itemTrade.getTradeType())
+					if(event.getTrade() instanceof ItemTradeData)
 					{
-					case SALE: message.append(" bought "); break;
-					case PURCHASE: message.append(" sold "); break;
-					case BARTER: message.append( "bartered "); break;
-						default: message.append(" ??? ");
-					}
-					if(isBarter)
-					{
-						//Item given
-						ItemStack barteredItem = itemTrade.getBarterItem();
-						message.append(barteredItem.getCount()).append(" ").append(barteredItem.getDisplayName().getString());
-						//Item bought
-						ItemStack boughtItem = itemTrade.getSellItem();
-						String boughtItemName = itemTrade.getCustomName().isEmpty() ? boughtItem.getDisplayName().getString() : itemTrade.getCustomName();
-						message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
-					}
-					else
-					{
-						//Item bought/sold
-						ItemStack boughtItem = itemTrade.getSellItem();
-						String boughtItemName = itemTrade.getCustomName().isEmpty() || itemTrade.getTradeType() != ItemTradeType.SALE ? boughtItem.getDisplayName().getString() : itemTrade.getCustomName();
-						message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
-						//Price
-						message.append(" for ");
-						message.append(event.getPricePaid().getString());
-					}
-					//From trader name
-					message.append(" from your ").append(event.getTrader().getName().getString());
-					
-					//Send the message directly to the linked user
-					//Create as pending message to avoid message spamming them when a player buys a ton of the same item
-					this.addPendingMessage(linkedUser, message.toString());
-					//MessageUtil.sendPrivateMessage(linkedUser, message.toString());
-					
-					//Check if out of stock
-					if(event.getTrader() instanceof IItemTrader)
-					{
-						if(itemTrade.stockCount((IItemTrader)event.getTrader()) < 1)
+						ItemTradeData itemTrade = (ItemTradeData)event.getTrade();
+						StringBuffer message = new StringBuffer();
+						//Customer name
+						message.append(event.getPlayerReference().lastKnownName());
+						//Action (bought, sold, ???)
+						boolean isBarter = itemTrade.getTradeType() == ItemTradeType.BARTER;
+						switch(itemTrade.getTradeType())
 						{
-							this.addPendingMessage(linkedUser, MessageManager.M_NOTIFICATION_OUTOFSTOCK.get());
-							//MessageUtil.sendPrivateMessage(linkedUser, "**This trade is now out of stock!**");
+						case SALE: message.append(" bought "); break;
+						case PURCHASE: message.append(" sold "); break;
+						case BARTER: message.append( "bartered "); break;
+							default: message.append(" ??? ");
+						}
+						if(isBarter)
+						{
+							//Item given
+							ItemStack barteredItem = itemTrade.getBarterItem();
+							message.append(barteredItem.getCount()).append(" ").append(barteredItem.getDisplayName().getString());
+							//Item bought
+							ItemStack boughtItem = itemTrade.getSellItem();
+							String boughtItemName = itemTrade.getCustomName().isEmpty() ? boughtItem.getDisplayName().getString() : itemTrade.getCustomName();
+							message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
+						}
+						else
+						{
+							//Item bought/sold
+							ItemStack boughtItem = itemTrade.getSellItem();
+							String boughtItemName = itemTrade.getCustomName().isEmpty() || itemTrade.getTradeType() != ItemTradeType.SALE ? boughtItem.getDisplayName().getString() : itemTrade.getCustomName();
+							message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
+							//Price
+							message.append(" for ");
+							message.append(event.getPricePaid().getString());
+						}
+						//From trader name
+						message.append(" from your ").append(event.getTrader().getName().getString());
+						
+						//Send the message directly to the linked user
+						//Create as pending message to avoid message spamming them when a player buys a ton of the same item
+						this.addPendingMessage(linkedUser, message.toString());
+						//MessageUtil.sendPrivateMessage(linkedUser, message.toString());
+						
+						//Check if out of stock
+						if(event.getTrader() instanceof IItemTrader)
+						{
+							if(itemTrade.stockCount((IItemTrader)event.getTrader()) < 1)
+							{
+								this.addPendingMessage(linkedUser, MessageManager.M_NOTIFICATION_OUTOFSTOCK.get());
+								//MessageUtil.sendPrivateMessage(linkedUser, "**This trade is now out of stock!**");
+							}
 						}
 					}
 				}
 			}
-		}
+		} catch(Exception e) { e.printStackTrace(); return; }
 	}
 	
 	public void addPendingMessage(User user, String message)

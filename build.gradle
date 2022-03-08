@@ -16,7 +16,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.16.4-0.0.2.1'
+version = '1.16.4-0.0.2.2'
 group = 'io.github.lightman314.lightmansdiscord' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansdiscord'
 
@@ -75,7 +75,6 @@ shadowJar {
     relocate 'com.neovisionaries', 'shadow.com.neovisionaries'
     relocate 'gnu', 'shadow.gnu'
     relocate 'org.apache.commons.collections4', 'shadow.org.apache.commons.collections4'
-    //relocate('org.apache.commons.lang3', 'shadow.org.apache.commons.lang3')
     relocate 'org.json', 'shadow.org.json'
     relocate 'org.intellij', 'shadow.org.intellij'
     relocate 'org.jetbrains', 'shadow.org.jetbrains'
@@ -118,10 +117,7 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compile fg.deobf('curse.maven:lightmans-currency-472521:3601420')
-
-    //Apache commons lang3
-    embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+    compile fg.deobf('curse.maven:lightmans-currency-472521:3640562')
 	
 }
 

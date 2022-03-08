@@ -23,7 +23,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18-0.0.2.1'
+version = '1.18-0.0.2.2'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansdiscord'
 
@@ -84,7 +84,6 @@ shadowJar {
     relocate 'com.neovisionaries', 'dcshadow.com.neovisionaries'
     relocate 'gnu', 'dcshadow.gnu'
     relocate 'org.apache.commons.collections4', 'dcshadow.org.apache.commons.collections4'
-    //relocate('org.apache.commons.lang3', 'dcshadow.org.apache.commons.lang3')
     relocate 'org.json', 'dcshadow.org.json'
     relocate 'org.intellij', 'dcshadow.org.intellij'
     relocate 'org.jetbrains', 'dcshadow.org.jetbrains'
@@ -127,10 +126,7 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3601423')
-
-    //Apache commons lang3
-   	//embed group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+    compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3638089')
 	
 }
 

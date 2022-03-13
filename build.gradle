@@ -126,7 +126,7 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3638089')
+    compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3661421')
 	
 }
 

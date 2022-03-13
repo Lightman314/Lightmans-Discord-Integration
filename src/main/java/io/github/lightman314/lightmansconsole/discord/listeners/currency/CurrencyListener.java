@@ -170,7 +170,9 @@ public class CurrencyListener extends SingleChannelListener{
 						if(listTrader)
 						{
 							AtomicBoolean firstTrade = new AtomicBoolean(true);
-							itemTrader.getAllTrades().forEach(trade ->{
+							for(int i = 0; i < itemTrader.getTradeCount(); ++i)
+							{
+								ItemTradeData trade = itemTrader.getTrade(i);
 								if(trade.isValid())
 								{
 									if(firstTrade.get())
@@ -201,11 +203,13 @@ public class CurrencyListener extends SingleChannelListener{
 										output.add("Bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName);
 									}
 								}
-							});
+							}
 						}
 						else
 						{
-							itemTrader.getAllTrades().forEach(trade ->{
+							for(int i = 0; i < itemTrader.getTradeCount(); ++i)
+							{
+								ItemTradeData trade = itemTrader.getTrade(i);
 								if(trade.isValid())
 								{
 									if(trade.isSale() && findSales.get())
@@ -249,7 +253,7 @@ public class CurrencyListener extends SingleChannelListener{
 										
 									}
 								}
-							});
+							}
 						}
 					}
 				});

@@ -12,6 +12,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 
+import io.github.lightman314.lctech.common.universaldata.UniversalEnergyTraderData;
+import io.github.lightman314.lctech.common.universaldata.UniversalFluidTraderData;
+import io.github.lightman314.lctech.trader.energy.IEnergyTrader;
+import io.github.lightman314.lctech.trader.fluid.IFluidTrader;
+import io.github.lightman314.lctech.trader.tradedata.EnergyTradeData;
+import io.github.lightman314.lctech.trader.tradedata.FluidTradeData;
+import io.github.lightman314.lctech.util.EnergyUtil;
+import io.github.lightman314.lctech.util.FluidFormatUtil;
 import io.github.lightman314.lightmansconsole.Config;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
@@ -36,6 +44,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.FluidStack;
 
 public class CurrencyListener extends SingleChannelListener{
 	
@@ -162,100 +171,228 @@ public class CurrencyListener extends SingleChannelListener{
 				}
 				List<String> output = new ArrayList<>();
 				TradingOffice.getTraders().forEach(trader -> {
-					if(trader instanceof UniversalItemTraderData) //Can't search for non item traders at this time
-					{
-						UniversalItemTraderData itemTrader = (UniversalItemTraderData)trader;
-						boolean listTrader = (findOwners.get() && (searchText.get().isEmpty() || itemTrader.getCoreSettings().getOwner().lastKnownName().toLowerCase().contains(searchText.get())))
-								|| (findTraders.get() && (searchText.get().isEmpty() || itemTrader.getName().getString().toLowerCase().contains(searchText.get())));
-						if(listTrader)
+					try {
+						boolean listTrader = (findOwners.get() && (searchText.get().isEmpty() || trader.getCoreSettings().getOwnerName().toLowerCase().contains(searchText.get())))
+								|| (findTraders.get() && (searchText.get().isEmpty() || trader.getName().getString().toLowerCase().contains(searchText.get())));
+						
+						if(trader instanceof UniversalItemTraderData) //Can't search for non item traders at this time
 						{
-							AtomicBoolean firstTrade = new AtomicBoolean(true);
-							for(int i = 0; i < itemTrader.getTradeCount(); ++i)
+							UniversalItemTraderData itemTrader = (UniversalItemTraderData)trader;
+							if(listTrader)
 							{
-								ItemTradeData trade = itemTrader.getTrade(i);
-								if(trade.isValid())
+								boolean firstTrade = true;
+								for(int i = 0; i < itemTrader.getTradeCount(); ++i)
 								{
-									if(firstTrade.get())
+									ItemTradeData trade = itemTrader.getTrade(i);
+									if(trade.isValid())
 									{
-										output.add("--" + itemTrader.getCoreSettings().getOwnerName() + "'s **" + itemTrader.getName().getString() + "**--");
-										firstTrade.set(false);
+										if(firstTrade)
+										{
+											output.add("--" + itemTrader.getCoreSettings().getOwnerName() + "'s **" + itemTrader.getName().getString() + "**--");
+											firstTrade = false;
+										}
+										if(trade.isSale())
+										{
+											ItemStack sellItem = trade.getSellItem();
+											String itemName = getItemName(sellItem, trade.getCustomName());
+											String priceText = trade.getCost().getString();
+											output.add("Selling " + sellItem.getCount() + "x " + itemName + " for " + priceText);
+										}
+										else if(trade.isPurchase())
+										{
+											ItemStack sellItem = trade.getSellItem();
+											String itemName = getItemName(sellItem, "");
+											String priceText = trade.getCost().getString();
+											output.add("Purchasing " + sellItem.getCount() + "x " + itemName + " for " + priceText);
+										}
+										else if(trade.isBarter())
+										{
+											ItemStack sellItem = trade.getSellItem();
+											String sellItemName = getItemName(sellItem, trade.getCustomName());
+											ItemStack barterItem = trade.getBarterItem();
+											String barterItemName = getItemName(barterItem, "");
+											output.add("Bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName);
+										}
 									}
-									if(trade.isSale())
+								}
+							}
+							else
+							{
+								for(int i = 0; i < itemTrader.getTradeCount(); ++i)
+								{
+									ItemTradeData trade = itemTrader.getTrade(i);
+									if(trade.isValid())
 									{
-										ItemStack sellItem = trade.getSellItem();
-										String itemName = getItemName(sellItem, trade.getCustomName());
-										String priceText = trade.getCost().getString();
-										output.add("Selling " + sellItem.getCount() + "x " + itemName + " for " + priceText);
-									}
-									else if(trade.isPurchase())
-									{
-										ItemStack sellItem = trade.getSellItem();
-										String itemName = getItemName(sellItem, "");
-										String priceText = trade.getCost().getString();
-										output.add("Purchasing " + sellItem.getCount() + "x " + itemName + " for " + priceText);
-									}
-									else if(trade.isBarter())
-									{
-										ItemStack sellItem = trade.getSellItem();
-										String sellItemName = getItemName(sellItem, trade.getCustomName());
-										ItemStack barterItem = trade.getBarterItem();
-										String barterItemName = getItemName(barterItem, "");
-										output.add("Bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName);
+										if(trade.isSale() && findSales.get())
+										{
+											ItemStack sellItem = trade.getSellItem();
+											String itemName = getItemName(sellItem, trade.getCustomName());
+											
+											//LightmansConsole.LOGGER.info("Item Name: " + itemName.toString());
+											if(searchText.get().isEmpty() || itemName.toLowerCase().contains(searchText.get()))
+											{
+												//Passed the search
+												String priceText = trade.getCost().getString();
+												output.add(itemTrader.getCoreSettings().getOwnerName() + " is selling " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
+											}
+										}
+										else if(trade.isPurchase() && findPurchases.get())
+										{
+											ItemStack sellItem = trade.getSellItem();
+											String itemName = getItemName(sellItem, "");
+											
+											//LightmansConsole.LOGGER.info("Item Name: " + itemName.toString());
+											if(searchText.get().isEmpty() || itemName.toLowerCase().contains(searchText.get()))
+											{
+												//Passed the search
+												String priceText = trade.getCost().getString();
+												output.add(itemTrader.getCoreSettings().getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
+											}
+										}
+										else if(trade.isBarter() && findBarters.get())
+										{
+											ItemStack sellItem = trade.getSellItem();
+											String sellItemName = getItemName(sellItem, trade.getCustomName());
+											
+											ItemStack barterItem = trade.getBarterItem();
+											String barterItemName = getItemName(barterItem,"");
+											
+											if(searchText.get().isEmpty() || sellItemName.toLowerCase().contains(searchText.get()) || barterItemName.toLowerCase().contains(searchText.get()))
+											{
+												output.add(itemTrader.getCoreSettings().getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
+											}
+											
+										}
 									}
 								}
 							}
 						}
-						else
+						else if(LightmansDiscordIntegration.isLCTechLoaded())
 						{
-							for(int i = 0; i < itemTrader.getTradeCount(); ++i)
+							if(trader instanceof UniversalFluidTraderData)
 							{
-								ItemTradeData trade = itemTrader.getTrade(i);
-								if(trade.isValid())
+								UniversalFluidTraderData fluidTrader = (UniversalFluidTraderData)trader;
+								if(listTrader)
 								{
-									if(trade.isSale() && findSales.get())
+									boolean firstTrade = true;
+									for(int i = 0; i < fluidTrader.getTradeCount(); ++i)
 									{
-										ItemStack sellItem = trade.getSellItem();
-										String itemName = getItemName(sellItem, trade.getCustomName());
-										
-										//LightmansConsole.LOGGER.info("Item Name: " + itemName.toString());
-										if(searchText.get().isEmpty() || itemName.toString().toLowerCase().contains(searchText.get()))
+										FluidTradeData trade = fluidTrader.getTrade(i);
+										if(trade.isValid())
 										{
-											//Passed the search
-											String priceText = trade.getCost().getString();
-											output.add(itemTrader.getCoreSettings().getOwnerName() + " is selling " + sellItem.getCount() + "x " + itemName + " at " + itemTrader.getName().getString() + " for " + priceText);
+											if(firstTrade)
+											{
+												output.add("--" + fluidTrader.getCoreSettings().getOwnerName() + "'s **" + fluidTrader.getName().getString() + "**--");
+												firstTrade = false;
+											}
+											if(trade.isSale())
+											{
+												FluidStack sellFluid = trade.getProduct();
+												String fluidName = FluidFormatUtil.getFluidName(sellFluid).getString();
+												String priceText = trade.getCost().getString();
+												output.add("Selling " + FluidFormatUtil.formatFluidAmount(trade.getQuantity()) + "mB of " + fluidName + " for " + priceText);
+											}
+											else if(trade.isPurchase())
+											{
+												FluidStack sellFluid = trade.getProduct();
+												String fluidName = FluidFormatUtil.getFluidName(sellFluid).getString();
+												String priceText = trade.getCost().getString();
+												output.add("Purchasing " + FluidFormatUtil.formatFluidAmount(trade.getQuantity()) + "mB of " + fluidName + " for " + priceText);
+											}
 										}
 									}
-									else if(trade.isPurchase() && findPurchases.get())
+								}
+								else
+								{
+									for(int i = 0; i < fluidTrader.getTradeCount(); ++i)
 									{
-										ItemStack sellItem = trade.getSellItem();
-										String itemName = getItemName(sellItem, "");
-										
-										//LightmansConsole.LOGGER.info("Item Name: " + itemName.toString());
-										if(searchText.get().isEmpty() || itemName.toLowerCase().contains(searchText.get()))
+										FluidTradeData trade = fluidTrader.getTrade(i);
+										if(trade.isValid())
 										{
-											//Passed the search
-											String priceText = trade.getCost().getString();
-											output.add(itemTrader.getCoreSettings().getOwnerName() + " is buying " + sellItem.getCount() + "x " + itemName.toString() + " at " + itemTrader.getName().getString() + " for " + priceText);
+											if(trade.isSale() && findSales.get())
+											{
+												FluidStack sellFluid = trade.getProduct();
+												String fluidName = FluidFormatUtil.getFluidName(sellFluid).getString();
+												
+												//LightmansConsole.LOGGER.info("Item Name: " + itemName.toString());
+												if(searchText.get().isEmpty() || fluidName.toLowerCase().contains(searchText.get()))
+												{
+													//Passed the search
+													String priceText = trade.getCost().getString();
+													output.add(fluidTrader.getCoreSettings().getOwnerName() + " is selling " + FluidFormatUtil.formatFluidAmount(trade.getQuantity()) + "mB of " + fluidName + " at " + fluidTrader.getName().getString() + " for " + priceText);
+												}
+											}
+											else if(trade.isPurchase() && findPurchases.get())
+											{
+												FluidStack sellFluid = trade.getProduct();
+												String fluidName = FluidFormatUtil.getFluidName(sellFluid).getString();
+												
+												//LightmansConsole.LOGGER.info("Item Name: " + itemName.toString());
+												if(searchText.get().isEmpty() || fluidName.toLowerCase().contains(searchText.get()))
+												{
+													//Passed the search
+													String priceText = trade.getCost().getString();
+													output.add(fluidTrader.getCoreSettings().getOwnerName() + " is buying " + FluidFormatUtil.formatFluidAmount(trade.getQuantity()) + "x " + fluidName + " at " + fluidTrader.getName().getString() + " for " + priceText);
+												}
+											}
 										}
 									}
-									else if(trade.isBarter() && findBarters.get())
+								}
+								
+							}
+							else if(trader instanceof UniversalEnergyTraderData)
+							{
+								UniversalEnergyTraderData energyTrader = (UniversalEnergyTraderData)trader;
+								if(listTrader)
+								{
+									boolean firstTrade = true;
+									for(int i = 0; i < energyTrader.getTradeCount(); ++i)
 									{
-										ItemStack sellItem = trade.getSellItem();
-										String sellItemName = getItemName(sellItem, trade.getCustomName());
-										
-										ItemStack barterItem = trade.getBarterItem();
-										String barterItemName = getItemName(barterItem,"");
-										
-										if(searchText.get().isEmpty() || sellItemName.toLowerCase().contains(searchText.get()) || barterItemName.toLowerCase().contains(searchText.get()))
+										EnergyTradeData trade = energyTrader.getTrade(i);
+										if(trade.isValid())
 										{
-											output.add(itemTrader.getCoreSettings().getOwnerName() + " is bartering " + barterItem.getCount() + "x " + barterItemName + " for " + sellItem.getCount() + "x " + sellItemName + " at " + itemTrader.getName().getString());
+											if(firstTrade)
+											{
+												output.add("--" + energyTrader.getCoreSettings().getOwnerName() + "'s **" + energyTrader.getName().getString() + "**--");
+												firstTrade = false;
+											}
+											if(trade.isSale())
+											{
+												String priceText = trade.getCost().getString();
+												output.add("Selling " + EnergyUtil.formatEnergyAmount(trade.getAmount()) + " for " + priceText);
+											}
+											else if(trade.isPurchase())
+											{
+												String priceText = trade.getCost().getString();
+												output.add("Purchasing " + EnergyUtil.formatEnergyAmount(trade.getAmount()) + " for " + priceText);
+											}
 										}
-										
+									}
+								}
+								else
+								{
+									for(int i = 0; i < energyTrader.getTradeCount(); ++i)
+									{
+										EnergyTradeData trade = energyTrader.getTrade(i);
+										//Energy Trades always have the same product name ("FE" or "ENERGY") so perform the search check before knowing the trade type
+										if(trade.isValid() && (searchText.get().isEmpty()|| EnergyUtil.ENERGY_UNIT.toLowerCase().contains(searchText.get()) || "Energy".toLowerCase().contains(searchText.get())))
+										{
+											if(trade.isSale() && findSales.get())
+											{
+												String priceText = trade.getCost().getString();
+												output.add(energyTrader.getCoreSettings().getOwnerName() + " is selling " + EnergyUtil.formatEnergyAmount(trade.getAmount()) + " at " + energyTrader.getName().getString() + " for " + priceText);
+											}
+											else if(trade.isPurchase() && findPurchases.get())
+											{
+												String priceText = trade.getCost().getString();
+												output.add(energyTrader.getCoreSettings().getOwnerName() + " is buying " + EnergyUtil.formatEnergyAmount(trade.getAmount()) + " at " + energyTrader.getName().getString() + " for " + priceText);
+											}
+										}
 									}
 								}
 							}
 						}
-					}
+					} catch(Exception e) { e.printStackTrace(); }
 				});
 				if(output.size() > 0)
 					MessageUtil.sendTextMessage(channel, output);
@@ -324,17 +461,17 @@ public class CurrencyListener extends SingleChannelListener{
 						{
 							//Item given
 							ItemStack barteredItem = itemTrade.getBarterItem();
-							message.append(barteredItem.getCount()).append(" ").append(barteredItem.getDisplayName().getString());
+							message.append(barteredItem.getCount()).append(" ").append(barteredItem.getHoverName().getString());
 							//Item bought
 							ItemStack boughtItem = itemTrade.getSellItem();
-							String boughtItemName = itemTrade.getCustomName().isEmpty() ? boughtItem.getDisplayName().getString() : itemTrade.getCustomName();
+							String boughtItemName = itemTrade.getCustomName().isEmpty() ? boughtItem.getHoverName().getString() : itemTrade.getCustomName();
 							message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
 						}
 						else
 						{
 							//Item bought/sold
 							ItemStack boughtItem = itemTrade.getSellItem();
-							String boughtItemName = itemTrade.getCustomName().isEmpty() || itemTrade.getTradeType() != ItemTradeType.SALE ? boughtItem.getDisplayName().getString() : itemTrade.getCustomName();
+							String boughtItemName = itemTrade.getCustomName().isEmpty() || itemTrade.getTradeType() != ItemTradeType.SALE ? boughtItem.getHoverName().getString() : itemTrade.getCustomName();
 							message.append(boughtItem.getCount()).append(" ").append(boughtItemName);
 							//Price
 							message.append(" for ");
@@ -361,9 +498,92 @@ public class CurrencyListener extends SingleChannelListener{
 							}
 						}
 					}
+					else if(LightmansDiscordIntegration.isLCTechLoaded())
+					{
+						if(event.getTrade() instanceof FluidTradeData)
+						{
+							FluidTradeData fluidTrade = (FluidTradeData)event.getTrade();
+							StringBuffer message = new StringBuffer();
+							//Customer name
+							message.append(event.getPlayerReference().lastKnownName());
+							//Action (bought, sold, ???)
+							switch(fluidTrade.getTradeDirection())
+							{
+							case SALE: message.append(" bought "); break;
+							case PURCHASE: message.append(" sold "); break;
+								default: message.append(" ??? ");
+							}
+							//Item bought/sold
+							FluidStack boughtFluid = fluidTrade.getProduct();
+							String boughtFluidName = FluidFormatUtil.getFluidName(boughtFluid).getString();
+							message.append(FluidFormatUtil.formatFluidAmount(fluidTrade.getQuantity())).append("mB of ").append(boughtFluidName);
+							//Price
+							message.append(" for ");
+							if(event.getPricePaid().isFree() || event.getPricePaid().getRawValue() <= 0)
+								message.append("free");
+							else
+								message.append(event.getPricePaid().getString());
+							
+							//From trader name
+							message.append(" from your ").append(event.getTrader().getName().getString());
+							
+							//Send the message directly to the linked user
+							//Create as pending message to avoid message spamming them when a player buys a ton of the same item
+							this.addPendingMessage(linkedUser, message.toString());
+							//MessageUtil.sendPrivateMessage(linkedUser, message.toString());
+							
+							//Check if out of stock
+							if(event.getTrader() instanceof IFluidTrader)
+							{
+								if(fluidTrade.getStock((IFluidTrader)event.getTrader()) < 1)
+								{
+									this.addPendingMessage(linkedUser, MessageManager.M_NOTIFICATION_OUTOFSTOCK.get());
+								}
+							}
+						}
+						else if(event.getTrade() instanceof EnergyTradeData)
+						{
+							EnergyTradeData energyTrade = (EnergyTradeData)event.getTrade();
+							StringBuffer message = new StringBuffer();
+							//Customer name
+							message.append(event.getPlayerReference().lastKnownName());
+							//Action (bought, sold, ???)
+							switch(energyTrade.getTradeDirection())
+							{
+							case SALE: message.append(" bought "); break;
+							case PURCHASE: message.append(" sold "); break;
+								default: message.append(" ??? ");
+							}
+							//Item bought/sold
+							message.append(EnergyUtil.formatEnergyAmount(energyTrade.getAmount()));
+							//Price
+							message.append(" for ");
+							if(event.getPricePaid().isFree() || event.getPricePaid().getRawValue() <= 0)
+								message.append("free");
+							else
+								message.append(event.getPricePaid().getString());
+							
+							//From trader name
+							message.append(" from your ").append(event.getTrader().getName().getString());
+							
+							//Send the message directly to the linked user
+							//Create as pending message to avoid message spamming them when a player buys a ton of the same item
+							this.addPendingMessage(linkedUser, message.toString());
+							//MessageUtil.sendPrivateMessage(linkedUser, message.toString());
+							
+							//Check if out of stock
+							if(event.getTrader() instanceof IEnergyTrader)
+							{
+								if(energyTrade.getStock((IEnergyTrader)event.getTrader()) < 1)
+								{
+									this.addPendingMessage(linkedUser, MessageManager.M_NOTIFICATION_OUTOFSTOCK.get());
+								}
+							}
+						}
+					}
 				}
 			}
-		} catch(Exception e) { e.printStackTrace(); return; }
+		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	public void addPendingMessage(User user, String message)
@@ -389,7 +609,9 @@ public class CurrencyListener extends SingleChannelListener{
 			try {
 				User user = this.getJDA().getUserById(userId);
 				if(user != null)
+				{
 					MessageUtil.sendPrivateMessage(user, messages);
+				}	
 			} catch(Exception e) { e.printStackTrace(); }
 		});
 		this.pendingMessages.clear();

@@ -127,6 +127,8 @@ dependencies {
     }
     
     compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3661421')
+    
+    compileOnly fg.deobf('curse.maven:lc-tech-548152:3687532')
 	
 }
 

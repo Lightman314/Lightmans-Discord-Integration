@@ -34,6 +34,8 @@ public class LightmansDiscordIntegration
     
     private static boolean lightmansCurrencyLoaded = false;
     public static boolean isLightmansCurrencyLoaded() { return lightmansCurrencyLoaded; }
+    private static boolean lctechLoaded = false;
+    public static boolean isLCTechLoaded() { return lctechLoaded; }
 
     public LightmansDiscordIntegration() {
         // Register the setup methods
@@ -47,6 +49,7 @@ public class LightmansDiscordIntegration
         MinecraftForge.EVENT_BUS.register(this);
         
         lightmansCurrencyLoaded = ModList.get().isLoaded("lightmanscurrency");
+        lctechLoaded = ModList.get().isLoaded("lctech");
         
        if(!(PROXY instanceof ServerProxy))
        {

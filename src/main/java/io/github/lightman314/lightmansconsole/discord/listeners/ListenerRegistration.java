@@ -21,9 +21,9 @@ public class ListenerRegistration {
 	public static void onJDAInit(JDAInitializedEvent event)
 	{
 		//Add the console listener
-    	event.getProxy().addListener(new ConsoleMessageListener(() -> Config.SERVER.consoleChannel.get()));
+    	event.getProxy().addListener(new ConsoleMessageListener(Config.SERVER.consoleChannel::get));
 		//Add the chat listener
-    	ChatMessageListener cml = new ChatMessageListener(() -> Config.SERVER.chatChannel.get());
+    	ChatMessageListener cml = new ChatMessageListener(Config.SERVER.chatChannel::get);
     	MinecraftForge.EVENT_BUS.register(cml);
     	event.getProxy().addListener(cml);
 		//Add the account linking listeners
@@ -31,7 +31,7 @@ public class ListenerRegistration {
     	//event.getProxy().addListener(new AccountAdminListener(Config.SERVER.accountAdminChannel.get()));
     	if(LightmansDiscordIntegration.isLightmansCurrencyLoaded())
     	{
-    		CurrencyListener cl = new CurrencyListener(() -> Config.SERVER.currencyChannel.get());
+    		CurrencyListener cl = new CurrencyListener(Config.SERVER.currencyChannel::get);
     		MinecraftForge.EVENT_BUS.register(cl);
     		event.getProxy().addListener(cl);
     	}

@@ -96,7 +96,7 @@ public class Config {
 			
 			builder.pop();
 			
-			builder.comment("Currency bot settings. Requires lightmanscurrency v0.8.4.8+ to use.").push("lightmanscurrency");
+			builder.comment("Currency bot settings. Requires lightmanscurrency v1.0.5.0+ to use.").push("lightmanscurrency");
 			
 			this.currencyChannel = builder
 					.comment("The channel where users can run the currency commands and where currency related announcements will be made.")

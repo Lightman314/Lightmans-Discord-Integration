@@ -16,7 +16,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = '1.16.4-0.0.2.3'
+version = '1.16.4-0.0.3.0'
 group = 'io.github.lightman314.lightmansdiscord' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansdiscord'
 
@@ -117,9 +117,9 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compile fg.deobf('curse.maven:lightmans-currency-472521:3661420')
+    //compile fg.deobf('curse.maven:lightmans-currency-472521:3661420')
     
-    compile fg.deobf('curse.maven:lc-tech-548152:3687531')
+    //compile fg.deobf('curse.maven:lc-tech-548152:3687531')
 	
 }
 

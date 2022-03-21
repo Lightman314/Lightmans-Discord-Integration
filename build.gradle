@@ -23,7 +23,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18-0.0.2.3'
+version = '1.18-0.0.3.0'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansdiscord'
 
@@ -126,9 +126,9 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3661421')
+    //compileOnly fg.deobf('curse.maven:lightmans-currency-472521:3661421')
     
-    compileOnly fg.deobf('curse.maven:lc-tech-548152:3687532')
+    //compileOnly fg.deobf('curse.maven:lc-tech-548152:3687532')
 	
 }
 

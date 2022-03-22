@@ -33,10 +33,6 @@ public class Config {
 		public final ForgeConfigSpec.BooleanValue accountWhitelist;
 		public final ForgeConfigSpec.ConfigValue<List<? extends String>> accountChannelBlacklist;
 		
-		//Currency Configs
-		public final ForgeConfigSpec.ConfigValue<String> currencyChannel;
-		public final ForgeConfigSpec.ConfigValue<String> currencyCommandPrefix;
-		
 		Server(ForgeConfigSpec.Builder builder)
 		{
 			
@@ -93,17 +89,6 @@ public class Config {
 			this.accountChannelBlacklist = builder
 					.comment("List of channel id's that the account bot should ignore commands from.")
 					.defineList("channelBlacklist", new ArrayList<>(), o -> o instanceof String);
-			
-			builder.pop();
-			
-			builder.comment("Currency bot settings. Requires lightmanscurrency v1.0.5.0+ to use.").push("lightmanscurrency");
-			
-			this.currencyChannel = builder
-					.comment("The channel where users can run the currency commands and where currency related announcements will be made.")
-					.define("channel", "000000000000000000");
-			this.currencyCommandPrefix = builder
-					.comment("Prefix for currency commands.")
-					.define("prefix", "!");
 			
 			builder.pop();
 			

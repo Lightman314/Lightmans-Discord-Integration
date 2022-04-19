@@ -12,6 +12,7 @@ import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PendingLink;
+import io.github.lightman314.lightmansconsole.discord.listeners.types.MultiChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.util.MemberUtil;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
@@ -62,12 +63,8 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 		
 		boolean isAdmin = isAdmin(event.getMember());
 		
-		List<? extends String> blacklistedChannels = Config.SERVER.accountChannelBlacklist.get();
-		for(int i = 0; i < blacklistedChannels.size(); i++)
-		{
-			if(blacklistedChannels.get(i).equals(event.getChannel().getId()))
-				return;
-		}
+		if(!MultiChannelListener.canListenToChannel(Config.SERVER.accountChannelBlacklist.get(), event.getChannel().getId()))
+			return;
 		
 		//Run command
 		String input = event.getMessage().getContentRaw();

@@ -10,13 +10,14 @@ import io.github.lightman314.lightmansconsole.commands.CommandReloadMessages;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber
 public class ForgeEventListener {
 
-	 @SubscribeEvent
+	 @SubscribeEvent(priority = EventPriority.LOWEST)
 	 public static void onServerStop(ServerStoppedEvent event)
 	 {
 		 if(LightmansDiscordIntegration.PROXY.getJDA() != null)

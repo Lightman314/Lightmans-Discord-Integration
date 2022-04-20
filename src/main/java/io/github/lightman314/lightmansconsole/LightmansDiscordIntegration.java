@@ -64,7 +64,9 @@ public class LightmansDiscordIntegration
     	{
     		try{
     			PROXY.initializeJDA();
-        		MinecraftForge.EVENT_BUS.post(new JDAInitializedEvent(PROXY));
+    			try {
+    				MinecraftForge.EVENT_BUS.post(new JDAInitializedEvent(PROXY));
+    			} catch(Throwable t) { LOGGER.error("Error initializing JDA listeners.", t); }
     		} catch(LoginException exception) {
     			LOGGER.error(exception.getMessage());
     		}

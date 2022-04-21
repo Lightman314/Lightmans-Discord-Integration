@@ -104,7 +104,7 @@ public class ChatMessageListener extends SingleChannelListener {
 			this.getJDA().getPresence().setActivity(Activity.competing(text));
 			break;
 		case STREAMING: //Special youtube link :P
-			this.getJDA().getPresence().setActivity(Activity.streaming(text, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+			this.getJDA().getPresence().setActivity(Activity.streaming(text, Config.SERVER.botStreamURL.get()));
 			break;
 		default:
 			//Do nothing if disabled

@@ -18,6 +18,7 @@ public class Config {
 		
 		public final ForgeConfigSpec.ConfigValue<String> botToken;
 		public final ForgeConfigSpec.EnumValue<ChatMessageListener.ActivityType> botActivityType;
+		public final ForgeConfigSpec.ConfigValue<String> botStreamURL;
 		
 		//Console Config
 		public final ForgeConfigSpec.ConfigValue<String> consoleChannel;
@@ -26,8 +27,6 @@ public class Config {
 		public final ForgeConfigSpec.ConfigValue<String> chatChannel;
 		public final ForgeConfigSpec.BooleanValue chatAllowPingEveryone;
 		//Account Configs
-		//public final ForgeConfigSpec.ConfigValue<String> accountChannel;
-		//public final ForgeConfigSpec.ConfigValue<String> accountAdminChannel;
 		public final ForgeConfigSpec.ConfigValue<List<? extends String>> accountAdminRole;
 		public final ForgeConfigSpec.ConfigValue<String> accountCommandPrefix;
 		public final ForgeConfigSpec.BooleanValue accountWhitelist;
@@ -44,6 +43,9 @@ public class Config {
 			this.botActivityType = builder
 					.comment("The bots activity type.")
 					.defineEnum("activityType", ActivityType.STREAMING);
+			this.botStreamURL = builder
+					.comment("The streaming URL if activity type is set to streaming.")
+					.define("streamingURL", "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 			
 			//Chat Bot Settings
 			builder.comment("Chat Formatting Settings").push("chat");

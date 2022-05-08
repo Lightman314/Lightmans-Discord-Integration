@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
@@ -45,7 +45,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	
 	Supplier<JDA> jdaSource;
 	public JDA getJDA() { return this.jdaSource.get(); }
-	Supplier<String> prefixSource = () -> Config.SERVER.accountCommandPrefix.get();
+	Supplier<String> prefixSource = () -> LDIConfig.SERVER.accountCommandPrefix.get();
 	
 	public AccountMessageListener()
 	{
@@ -63,12 +63,12 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 		
 		boolean isAdmin = isAdmin(event.getMember());
 		
-		if(!MultiChannelListener.canListenToChannel(Config.SERVER.accountChannelBlacklist.get(), event.getChannel().getId()))
+		if(!MultiChannelListener.canListenToChannel(LDIConfig.SERVER.accountChannelBlacklist.get(), event.getChannel().getId()))
 			return;
 		
 		//Run command
 		String input = event.getMessage().getContentRaw();
-		String prefix = Config.SERVER.accountCommandPrefix.get();
+		String prefix = LDIConfig.SERVER.accountCommandPrefix.get();
 		if(input.startsWith(prefix))
 		{
 			final String command = input.substring(prefix.length());
@@ -95,7 +95,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				{
 					List<String> output = AccountManager.tryLinkUser2(linkingUser.getUser(), playerName);
 					MessageUtil.sendTextMessage(event.getTextChannel(), output);
-					if(Config.SERVER.accountWhitelist.get())
+					if(LDIConfig.SERVER.accountWhitelist.get())
 					{
 						MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 						server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
@@ -167,7 +167,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 			}
 			else if(command.startsWith("help"))
 			{
-				String commandPrefix = Config.SERVER.accountCommandPrefix.get();
+				String commandPrefix = LDIConfig.SERVER.accountCommandPrefix.get();
 				List<String> output = new ArrayList<>();
 				output.add("Minecraft-Discord Account Linkage Help:");
 				output.add(commandPrefix + "help - " + MessageManager.M_HELP_HELP.get());
@@ -209,7 +209,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 		List<Role> roles = member.getRoles();
 		for(int i = 0; i < roles.size(); i++)
 		{
-			if(Config.SERVER.accountAdminRole.get().contains(roles.get(i).getId()))
+			if(LDIConfig.SERVER.accountAdminRole.get().contains(roles.get(i).getId()))
 				return true;
 		}
 		return false;

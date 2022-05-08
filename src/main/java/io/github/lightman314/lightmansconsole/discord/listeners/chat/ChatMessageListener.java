@@ -6,10 +6,11 @@ import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
+import io.github.lightman314.lightmansconsole.message.MessageManager.MessageEntry;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,6 +19,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
@@ -54,8 +56,17 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void onChannelMessageReceived(MessageReceivedEvent event)
 	{
 		if(event.getAuthor().isBot())
+		{
+			//If bot is allowed, send message to players
+			if(LDIConfig.SERVER.chatBotWhitelist.get().contains(event.getAuthor().getId()))
+			{
+				Component message = formatDiscordMessage(MessageManager.M_FORMAT_MINECRAFT_BOT, event.getMember(), event.getMessage(), "bot");
+				server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
+				LightmansDiscordIntegration.LOGGER.info(message.getString());
+			}
 			return;
-		if(event.getMessage().getContentRaw().startsWith("/list"))
+		}
+		if(event.getMessage().getContentRaw().equals(LDIConfig.SERVER.listPlayerCommand.get()))
 		{
 			List<String> output = new ArrayList<>();
 			List<ServerPlayer> playerList = getPlayerList();
@@ -72,7 +83,7 @@ public class ChatMessageListener extends SingleChannelListener {
 			this.sendTextMessage(output);
 			return;
 		}
-		Component message = formatDiscordMessage(event.getMember(), event.getMessage());
+		Component message = formatDiscordMessage(MessageManager.M_FORMAT_MINECRAFT, event.getMember(), event.getMessage(), "user");
 		server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
 		LightmansDiscordIntegration.LOGGER.info(message.getString());
 	}
@@ -89,7 +100,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public void setActivityText(String text)
 	{
-		switch(Config.SERVER.botActivityType.get())
+		switch(LDIConfig.SERVER.botActivityType.get())
 		{
 		case LISTENING:
 			this.getJDA().getPresence().setActivity(Activity.listening(text));
@@ -103,8 +114,8 @@ public class ChatMessageListener extends SingleChannelListener {
 		case COMPETING:
 			this.getJDA().getPresence().setActivity(Activity.competing(text));
 			break;
-		case STREAMING: //Special youtube link :P
-			this.getJDA().getPresence().setActivity(Activity.streaming(text, Config.SERVER.botStreamURL.get()));
+		case STREAMING:
+			this.getJDA().getPresence().setActivity(Activity.streaming(text, LDIConfig.SERVER.botStreamURL.get()));
 			break;
 		default:
 			//Do nothing if disabled
@@ -163,12 +174,16 @@ public class ChatMessageListener extends SingleChannelListener {
 	}
 	
 	@SubscribeEvent
-	public void onPlayerDeath(LivingDeathEvent event)
+	public void onEntityDeath(LivingDeathEvent event)
 	{
 		try {
 			if(event.getEntity() instanceof Player)
 			{
 				this.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
+			}
+			else if(event.getEntityLiving().hasCustomName())
+			{
+				this.sendTextMessage(MessageManager.M_ENTITY_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
 			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -204,11 +219,16 @@ public class ChatMessageListener extends SingleChannelListener {
 		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
-	public Component formatDiscordMessage(Member member, Message message)
+	public Component formatDiscordMessage(MessageEntry format, Member member, Message message, String userFormat)
 	{
-		return new TextComponent(MessageManager.M_FORMAT_MINECRAFT_PREFIX.get())
-				.append(formatMemberName(member))
-				.append(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.format(MessageUtil.formatMessageText(message, this.getGuild())));
+		String[] splitMessage = format.format(MessageUtil.formatMessageText(message, this.getGuild())).split("\\{" + userFormat + "\\}");
+		MutableComponent result = new TextComponent(splitMessage[0]);
+		for(int i = 1; i < splitMessage.length; ++i)
+		{
+			result.append(formatMemberName(member));
+			result.append(splitMessage[i]);
+		}
+		return result;
 	}
 	
 	public static Component formatMemberName(Member member)
@@ -216,7 +236,7 @@ public class ChatMessageListener extends SingleChannelListener {
 		return new TextComponent(member.getEffectiveName()).withStyle(Style.EMPTY
 				.withColor(TextColor.fromRgb(member.getColorRaw()))
 				.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,"<@!" + member.getId() + ">"))
-				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Mention")))
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(MessageManager.M_MEMBER_HOVER.get())))
 				);
 	}
 	

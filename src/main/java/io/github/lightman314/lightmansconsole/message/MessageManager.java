@@ -24,13 +24,15 @@ public class MessageManager {
 	//public static final MessageEntry M_DUMMY = MessageEntry.create("dummy", "Comment", "Value", "arg1");
 	
 	//Chat message formats
-	public static final MessageEntry M_FORMAT_MINECRAFT_PREFIX = MessageEntry.create("chat_minecraft_pre", "Prefix portion of discord messages in minecraft. Displayed as {prefix}{user}{postfix} {message}, where this is the prefix.\nSeperated into prefix & postfix form so that the discord users name can maintain special color formatting and hover/click events.", "[DISCORD] <");
-	public static final MessageEntry M_FORMAT_MINECRAFT_POSTFIX = MessageEntry.create("chat_minecraft_post", "Prefix portion of discord messages in minecraft. Displayed as {prefix}{user}{postfix}, where this is the postfix.\n{message} for the message sent. Should contain this under all circumstances.", "> {message}", "message");
+	public static final MessageEntry M_FORMAT_MINECRAFT = MessageEntry.create("chat_minecraft", "How discord messages appear in minecraft.\n{user} for the discord users formatted name.\n{message} for the message sent.", "[DISCORD] <{user}> {message}", "message");
+	public static final MessageEntry M_FORMAT_MINECRAFT_BOT = MessageEntry.create("chat_minecraft_bot", "How discord bot messages appear in minecraft.\n{bot} for the bots name.\n{message} for the message sent. Should contain this under all circumstances.", "[{bot}] {message}", "message");
 	public static final MessageEntry M_FORMAT_DISCORD = MessageEntry.create("chat_discord", "Format of minecraft messages in discord.\n{player} for player name.\n{message} for chat message.","**{player}:** {message}", "player","message");
 	public static final MessageEntry M_PLAYER_JOIN = MessageEntry.create("chat_playerjoin", "Format of player join message in discord.\n{minecraft} for default minecraft translation.\n{player} for player name.", "{minecraft}", "minecraft","player");
 	public static final MessageEntry M_PLAYER_LEAVE = MessageEntry.create("chat_playerleave", "Format of player leave message in discord.\n{minecraft} for default minecraft translation.\n{player} for player name.", "{minecraft}", "minecraft","player");
 	public static final MessageEntry M_PLAYER_ACHIEVEMENT = MessageEntry.create("chat_achievement", "Format of the achievement announcement in discord.\n{player} for the player.\n{achievename} for the achievement's name.\n{achievedesc} for the achievements description.", "{player} hast made the achievement **{achievename}**\\n*{achievedesc}*", "player","achievename","achievedesc");
 	public static final MessageEntry M_PLAYER_DEATH = MessageEntry.create("chat_playerdeath", "Format of the player death message in discord.\n{minecraft} for default minecraft death message.\n{player} for the player name.", "{minecraft}", "minecraft","player");
+	public static final MessageEntry M_ENTITY_DEATH = MessageEntry.create("chat_entitydeath", "Format of the named entity death message in discord.\n{minecraft} for default minecraft death message.\n{entity} for the entity name.", "{minecraft}", "minecraft","entity");
+	public static final MessageEntry M_MEMBER_HOVER = MessageEntry.create("chat_mention_hover", "Message shown in minecraft when hovering over a discord users name from 'chat_minecraft' and 'chat_minecraft_bot' messages.", "Mention");
 	
 	//Console bot messages
 	public static final MessageEntry M_CONSOLEBOT_READY = MessageEntry.create("consolebot_ready", "Message sent when the console bot is ready for commands.", "Console Bot is ready!");

@@ -5,13 +5,13 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener;
 import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener.ActivityType;
 import net.minecraftforge.common.ForgeConfigSpec;
 
-public class Config {
+public class LDIConfig {
 
 	public static class Server
 	{
@@ -26,6 +26,9 @@ public class Config {
 		//Chat Config
 		public final ForgeConfigSpec.ConfigValue<String> chatChannel;
 		public final ForgeConfigSpec.BooleanValue chatAllowPingEveryone;
+		public final ForgeConfigSpec.BooleanValue postEntityDeaths;
+		public final ForgeConfigSpec.ConfigValue<String> listPlayerCommand;
+		public final ForgeConfigSpec.ConfigValue<List<? extends String>> chatBotWhitelist;
 		//Account Configs
 		public final ForgeConfigSpec.ConfigValue<List<? extends String>> accountAdminRole;
 		public final ForgeConfigSpec.ConfigValue<String> accountCommandPrefix;
@@ -56,6 +59,15 @@ public class Config {
 			this.chatAllowPingEveryone = builder
 					.comment("Whether minecraft players can ping @everyone in their chat messages.")
 					.define("ping_everyone", false);
+			this.postEntityDeaths = builder
+					.comment("Whether the deaths of named entities should be posted in server chat. Disable if there are mods that spawn entities with custom names.")
+					.define("postEntityDeaths", true);
+			this.listPlayerCommand = builder
+					.comment("The command that can be run in the server chat channel to list all online players.")
+					.define("listPlayerCommand", "/list");
+			this.chatBotWhitelist = builder
+					.comment("List of bot id's whos messages will be transmitted to minecraft chat when a message is sent in the server chat channel.")
+					.defineList("botWhitelist", new ArrayList<>(), o -> o instanceof String);
 			
 			builder.pop();
 			
@@ -81,7 +93,7 @@ public class Config {
 					.define("adminChannel", "000000000000000000");*/
 			this.accountAdminRole = builder
 					.comment("The role given to members that are allowed to run the 'linkuser' & 'unlinkplayer' command.")
-					.defineList("adminRoles", ImmutableList.of("000000000000000000"), o -> o instanceof String);
+					.defineList("adminRoles", Lists.newArrayList("000000000000000000"), o -> o instanceof String);
 			this.accountWhitelist = builder
 					.comment("Whether a user should also be whitelisted when linked by the 'linkuser' command.")
 					.define("autoWhitelist", false);
@@ -99,12 +111,12 @@ public class Config {
 	}
 	
 	public static final ForgeConfigSpec serverSpec;
-	public static final Config.Server SERVER;
+	public static final LDIConfig.Server SERVER;
 	
 	static
 	{
 		//Server
-		final Pair<Server,ForgeConfigSpec> serverPair = new ForgeConfigSpec.Builder().configure(Config.Server::new);
+		final Pair<Server,ForgeConfigSpec> serverPair = new ForgeConfigSpec.Builder().configure(LDIConfig.Server::new);
 		serverSpec = serverPair.getRight();
 		SERVER = serverPair.getLeft();
 	}

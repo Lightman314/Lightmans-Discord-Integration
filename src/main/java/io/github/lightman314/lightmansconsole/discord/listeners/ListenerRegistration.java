@@ -1,6 +1,6 @@
 package io.github.lightman314.lightmansconsole.discord.listeners;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.listeners.account.AccountMessageListener;
 import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener;
@@ -21,9 +21,9 @@ public class ListenerRegistration {
 	{
 		try {
 			//Add the console listener
-	    	event.getProxy().addListener(new ConsoleMessageListener(Config.SERVER.consoleChannel::get));
+	    	event.getProxy().addListener(new ConsoleMessageListener(LDIConfig.SERVER.consoleChannel::get));
 			//Add the chat listener
-	    	ChatMessageListener cml = new ChatMessageListener(Config.SERVER.chatChannel::get);
+	    	ChatMessageListener cml = new ChatMessageListener(LDIConfig.SERVER.chatChannel::get);
 	    	MinecraftForge.EVENT_BUS.register(cml);
 	    	event.getProxy().addListener(cml);
 			//Add the account linking listeners

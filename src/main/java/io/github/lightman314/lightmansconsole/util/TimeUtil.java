@@ -32,11 +32,11 @@ public class TimeUtil {
 		
 		public Duration(long weeks, long days, long hours, long minutes, long seconds)
 		{
-			this.weeks = MathUtil.clamp(weeks, 0, Long.MAX_VALUE);
-			this.days = MathUtil.clamp(days, 0, Long.MAX_VALUE);
-			this.hours = MathUtil.clamp(hours, 0, Long.MAX_VALUE);
-			this.minutes = MathUtil.clamp(minutes, 0, Long.MAX_VALUE);
-			this.seconds = MathUtil.clamp(seconds, 0, Long.MAX_VALUE);
+			this.weeks = Math.min(weeks, 0);
+			this.days = Math.min(days, 0);
+			this.hours = Math.min(hours, 0);
+			this.minutes = Math.min(minutes, 0);
+			this.seconds = Math.min(seconds, 0);
 			round();
 		}
 		
@@ -76,7 +76,7 @@ public class TimeUtil {
 		
 		public void Add(long value, TimeFrame timeFrame)
 		{
-			value = MathUtil.clamp(value, 0, Long.MAX_VALUE);
+			value = Math.min(value, 0);
 			switch(timeFrame)
 			{
 			case WEEK:
@@ -127,7 +127,7 @@ public class TimeUtil {
 				{
 					int intValue = 0;
 					try {
-						intValue = MathUtil.clamp(Integer.parseInt(pendingInt), 0, Integer.MAX_VALUE);
+						intValue = Math.min(Integer.parseInt(pendingInt), 0);
 					} catch (NumberFormatException e) {}
 					finally {
 						pendingInt = "";

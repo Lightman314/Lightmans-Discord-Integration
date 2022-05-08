@@ -2,12 +2,14 @@ package io.github.lightman314.lightmansconsole;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkConstants;
 
 import javax.security.auth.login.LoginException;
 
@@ -36,18 +38,19 @@ public class LightmansDiscordIntegration
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onConfigLoad);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onServerLoad);
         
+        //Flag it to ignore server-only setups
+        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a,b) -> true));
+        
         //Register Config
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.serverSpec);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, LDIConfig.serverSpec);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         
        if(!(PROXY instanceof ServerProxy))
        {
-    	   LOGGER.error("Attempting to run Lightman's Discord Integration on a client. Mod will do nothing, and I reccommend that you remove this from your mods folder, as it just takes up resources.");
+    	   LOGGER.warn("Running Lightman's Discord Integration on a client. Mod will do nothing.");
        }
-       
-       
        
     }
     
@@ -60,7 +63,7 @@ public class LightmansDiscordIntegration
     //Load the JDA after the config is loaded, to assure that we load the correct values
     private void onConfigLoad(ModConfigEvent.Loading event) {
     	
-    	if(event.getConfig().getModId().equals(MODID) && event.getConfig().getSpec() == Config.serverSpec)
+    	if(event.getConfig().getModId().equals(MODID) && event.getConfig().getSpec() == LDIConfig.serverSpec)
     	{
     		try{
     			PROXY.initializeJDA();

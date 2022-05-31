@@ -15,7 +15,7 @@ import net.minecraft.entity.player.PlayerEntity;
 
 public class CommandDiscordLink {
 
-	public static final String COMMAND_LITERAL = "linkdiscord";
+public static final String COMMAND_LITERAL = "linkdiscord";
 	
 	public static void register(CommandDispatcher<CommandSource> dispatcher)
 	{

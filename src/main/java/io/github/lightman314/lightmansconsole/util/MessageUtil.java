@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
@@ -115,7 +115,7 @@ public class MessageUtil {
 	 */
 	public static String formatMinecraftMessage(String minecraftMessage, @Nullable Guild guild)
 	{
-		if(!Config.SERVER.chatAllowPingEveryone.get())
+		if(!LDIConfig.SERVER.chatAllowPingEveryone.get())
 			minecraftMessage = minecraftMessage.replaceAll("@everyone", "@**everyone**");
 		if(guild == null)
 			return minecraftMessage;

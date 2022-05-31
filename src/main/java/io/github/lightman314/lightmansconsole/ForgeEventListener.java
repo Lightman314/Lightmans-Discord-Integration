@@ -9,6 +9,7 @@ import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkSelf;
 import io.github.lightman314.lightmansconsole.commands.CommandReloadMessages;
 import net.minecraft.command.CommandSource;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
@@ -16,7 +17,7 @@ import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 @Mod.EventBusSubscriber
 public class ForgeEventListener {
 
-	 @SubscribeEvent
+	 @SubscribeEvent(priority = EventPriority.LOWEST)
 	 public static void onServerStop(FMLServerStoppedEvent event)
 	 {
 		 if(LightmansDiscordIntegration.PROXY.getJDA() != null)

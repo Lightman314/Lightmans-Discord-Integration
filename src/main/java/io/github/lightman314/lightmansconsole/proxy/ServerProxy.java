@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.security.auth.login.LoginException;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -32,7 +32,7 @@ public class ServerProxy extends Proxy{
     	}
     	initialized = true;
     	
-    	String token = Config.SERVER.botToken.get();
+    	String token = LDIConfig.SERVER.botToken.get();
     	
     	//Build the JDA
     	LightmansDiscordIntegration.LOGGER.info("Attempting to build the JDA.");

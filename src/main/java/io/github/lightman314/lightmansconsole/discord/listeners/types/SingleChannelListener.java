@@ -21,7 +21,11 @@ public abstract class SingleChannelListener extends ListenerAdapter{
 	{
 		this.channelID = channel;
 		this.jdaSource = jdaSource;
+		if(this.blockMultiChannelListeners())
+			MultiChannelListener.ignoreChannel(this.channelID);
 	}
+	
+	protected boolean blockMultiChannelListeners() { return true; }
 	
 	public JDA getJDA() { return this.jdaSource.get(); }
 	

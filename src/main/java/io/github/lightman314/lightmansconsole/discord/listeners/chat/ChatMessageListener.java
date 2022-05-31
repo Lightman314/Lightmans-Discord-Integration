@@ -2,13 +2,15 @@ package io.github.lightman314.lightmansconsole.discord.listeners.chat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
+import io.github.lightman314.lightmansconsole.message.MessageManager.MessageEntry;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,6 +20,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.text.Color;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.Style;
@@ -38,6 +41,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	public enum ActivityType { DISABLED, LISTENING, PLAYING, WATCHING, COMPETING, STREAMING }
 	
 	private final MinecraftServer server;
+	private final UUID senderID = new UUID(0,0);
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
@@ -52,8 +56,17 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void onChannelMessageReceived(MessageReceivedEvent event)
 	{
 		if(event.getAuthor().isBot())
+		{
+			//If bot is allowed, send message to players
+			if(LDIConfig.SERVER.chatBotWhitelist.get().contains(event.getAuthor().getId()))
+			{
+				ITextComponent message = formatDiscordMessage(MessageManager.M_FORMAT_MINECRAFT_BOT, event.getMember(), event.getMessage(), "bot");
+				server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
+				LightmansDiscordIntegration.LOGGER.info(message.getString());
+			}
 			return;
-		if(event.getMessage().getContentRaw().startsWith("/list"))
+		}
+		if(event.getMessage().getContentRaw().equals(LDIConfig.SERVER.listPlayerCommand.get()))
 		{
 			List<String> output = new ArrayList<>();
 			List<ServerPlayerEntity> playerList = getPlayerList();
@@ -70,8 +83,8 @@ public class ChatMessageListener extends SingleChannelListener {
 			this.sendTextMessage(output);
 			return;
 		}
-		ITextComponent message = formatDiscordMessage(event.getMember(), event.getMessage());
-		server.getPlayerList().getPlayers().forEach(player -> player.sendStatusMessage(message, false));
+		ITextComponent message = formatDiscordMessage(MessageManager.M_FORMAT_MINECRAFT, event.getMember(), event.getMessage(), "user");
+		server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
 		LightmansDiscordIntegration.LOGGER.info(message.getString());
 	}
 	
@@ -87,7 +100,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public void setActivityText(String text)
 	{
-		switch(Config.SERVER.botActivityType.get())
+		switch(LDIConfig.SERVER.botActivityType.get())
 		{
 		case LISTENING:
 			this.getJDA().getPresence().setActivity(Activity.listening(text));
@@ -102,7 +115,7 @@ public class ChatMessageListener extends SingleChannelListener {
 			this.getJDA().getPresence().setActivity(Activity.competing(text));
 			break;
 		case STREAMING: //Special youtube link :P
-			this.getJDA().getPresence().setActivity(Activity.streaming(text, "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+			this.getJDA().getPresence().setActivity(Activity.streaming(text, LDIConfig.SERVER.botStreamURL.get()));
 			break;
 		default:
 			//Do nothing if disabled
@@ -162,12 +175,16 @@ public class ChatMessageListener extends SingleChannelListener {
 	}
 	
 	@SubscribeEvent
-	public void onPlayerDeath(LivingDeathEvent event)
+	public void onEntityDeath(LivingDeathEvent event)
 	{
 		try {
 			if(event.getEntity() instanceof PlayerEntity)
 			{
 				this.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
+			}
+			else if(event.getEntityLiving().hasCustomName())
+			{
+				this.sendTextMessage(MessageManager.M_ENTITY_DEATH.format(event.getSource().getDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
 			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -202,11 +219,16 @@ public class ChatMessageListener extends SingleChannelListener {
 		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
-	public ITextComponent formatDiscordMessage(Member member, Message message)
+	public ITextComponent formatDiscordMessage(MessageEntry format, Member member, Message message, String userFormat)
 	{
-		return new StringTextComponent(MessageManager.M_FORMAT_MINECRAFT_PREFIX.get())
-				.append(formatMemberName(member))
-				.appendString(MessageManager.M_FORMAT_MINECRAFT_POSTFIX.format(MessageUtil.formatMessageText(message,  this.getGuild())));
+		String[] splitMessage = format.format(MessageUtil.formatMessageText(message, this.getGuild())).split("\\{" + userFormat + "\\}");
+		IFormattableTextComponent result = new StringTextComponent(splitMessage[0]);
+		for(int i = 1; i < splitMessage.length; ++i)
+		{
+			result.append(formatMemberName(member));
+			result.appendString(splitMessage[i]);
+		}
+		return result;
 		
 	}
 	
@@ -215,7 +237,7 @@ public class ChatMessageListener extends SingleChannelListener {
 		return new StringTextComponent(member.getEffectiveName()).mergeStyle(Style.EMPTY
 				.setColor(Color.fromInt(member.getColorRaw()))
 				.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,"<@!" + member.getId() + ">"))
-				.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new StringTextComponent("Mention")))
+				.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new StringTextComponent(MessageManager.M_MEMBER_HOVER.get())))
 				);
 	}
 	

@@ -6,12 +6,13 @@ import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
 import io.github.lightman314.lightmansconsole.discord.links.AccountManager;
 import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PendingLink;
+import io.github.lightman314.lightmansconsole.discord.listeners.types.MultiChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.util.MemberUtil;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
@@ -45,7 +46,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 	
 	Supplier<JDA> jdaSource;
 	public JDA getJDA() { return this.jdaSource.get(); }
-	Supplier<String> prefixSource = () -> Config.SERVER.accountCommandPrefix.get();
+	Supplier<String> prefixSource = () -> LDIConfig.SERVER.accountCommandPrefix.get();
 	
 	public AccountMessageListener()
 	{
@@ -63,16 +64,12 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 		
 		boolean isAdmin = isAdmin(event.getMember());
 		
-		List<? extends String> blacklistedChannels = Config.SERVER.accountChannelBlacklist.get();
-		for(int i = 0; i < blacklistedChannels.size(); i++)
-		{
-			if(blacklistedChannels.get(i).equals(event.getChannel().getId()))
-				return;
-		}
+		if(!MultiChannelListener.canListenToChannel(LDIConfig.SERVER.accountChannelBlacklist.get(), event.getChannel().getId()))
+			return;
 		
 		//Run command
 		String input = event.getMessage().getContentRaw();
-		String prefix = Config.SERVER.accountCommandPrefix.get();
+		String prefix = LDIConfig.SERVER.accountCommandPrefix.get();
 		if(input.startsWith(prefix))
 		{
 			final String command = input.substring(prefix.length());
@@ -80,7 +77,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 			{
 				if(!isAdmin)
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.get());
 					return;
 				}
 				String subcommand = command.substring(8);
@@ -92,32 +89,32 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 					playerName = subcommand.substring(endIndex + 1).replace(" ", ""); //Wipe empty space from the name
 				else
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_NOPING.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_NOPING.get());
 					return;
 				}
 				if(linkingUser != null)
 				{
 					List<String> output = AccountManager.tryLinkUser2(linkingUser.getUser(), playerName);
 					MessageUtil.sendTextMessage(event.getTextChannel(), output);
-					if(Config.SERVER.accountWhitelist.get())
+					if(LDIConfig.SERVER.accountWhitelist.get())
 					{
 						MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 						server.getCommandManager().handleCommand(commandSource, "whitelist add " + playerName);
 						MessageUtil.sendTextMessage(event.getTextChannel(), commandOutput);
 						commandOutput.clear();
 					}
-					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.format());
+					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.get());
 				}
 				else
 				{
-					MessageUtil.sendTextMessage(event.getTextChannel(), MessageManager.M_ERROR_PING.format());
+					MessageUtil.sendTextMessage(event.getTextChannel(), MessageManager.M_ERROR_PING.get());
 				}
 			}
 			else if(command.startsWith("unlinkplayer "))
 			{
 				if(!isAdmin)
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.get());
 					return;
 				}
 				String playerName = command.substring(13);
@@ -128,10 +125,10 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 			{
 				PendingLink pendingLink = AccountManager.createPendingLink(event.getAuthor());
 				if(pendingLink == null)
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_LINK_FAIL.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_LINK_FAIL.get());
 				else //Send PM to user with their link key.
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_LINK_SUCCESS.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_LINK_SUCCESS.get());
 					MessageUtil.sendPrivateMessage(event.getAuthor(), MessageManager.M_LINK_MESSAGE.format(pendingLink.linkKey, "/" + CommandDiscordLink.COMMAND_LITERAL + " " + pendingLink.linkKey));
 				}
 			}
@@ -145,7 +142,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 			{
 				if(!isAdmin)
 				{
-					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.format());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PERMISSIONS.get());
 					return;
 				}
 				List<String> output = new ArrayList<>();
@@ -171,17 +168,17 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 			}
 			else if(command.startsWith("help"))
 			{
-				String commandPrefix = Config.SERVER.accountCommandPrefix.get();
+				String commandPrefix = LDIConfig.SERVER.accountCommandPrefix.get();
 				List<String> output = new ArrayList<>();
 				output.add("Minecraft-Discord Account Linkage Help:");
-				output.add(commandPrefix + "help - " + MessageManager.M_HELP_HELP.format());
-				output.add(commandPrefix + "link - " + MessageManager.M_HELP_LINK.format());
-				output.add(commandPrefix + "unlink - " + MessageManager.M_HELP_UNLINK.format());
+				output.add(commandPrefix + "help - " + MessageManager.M_HELP_HELP.get());
+				output.add(commandPrefix + "link - " + MessageManager.M_HELP_LINK.get());
+				output.add(commandPrefix + "unlink - " + MessageManager.M_HELP_UNLINK.get());
 				if(isAdmin)
 				{
-					output.add(commandPrefix + "linkuser @user <MINECRAFT_USERNAME> - " + MessageManager.M_HELP_LINKUSER.format());
-					output.add(commandPrefix + "unlinkplayer <MINECRAFT_USERNAME> - " + MessageManager.M_HELP_UNLINKPLAYER.format());
-					output.add(commandPrefix + "discordlist - " + MessageManager.M_HELP_DISCORDLIST.format());
+					output.add(commandPrefix + "linkuser @user <MINECRAFT_USERNAME> - " + MessageManager.M_HELP_LINKUSER.get());
+					output.add(commandPrefix + "unlinkplayer <MINECRAFT_USERNAME> - " + MessageManager.M_HELP_UNLINKPLAYER.get());
+					output.add(commandPrefix + "discordlist - " + MessageManager.M_HELP_DISCORDLIST.get());
 				}
 				this.REGISTERED_COMMANDS.forEach(c -> {
 					if(c.canRun(isAdmin))
@@ -213,7 +210,7 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 		List<Role> roles = member.getRoles();
 		for(int i = 0; i < roles.size(); i++)
 		{
-			if(Config.SERVER.accountAdminRole.get().contains(roles.get(i).getId()))
+			if(LDIConfig.SERVER.accountAdminRole.get().contains(roles.get(i).getId()))
 				return true;
 		}
 		return false;
@@ -232,8 +229,8 @@ public class AccountMessageListener extends ListenerAdapter implements ICommandS
 	}
 	
 	public boolean allowLogging() { return true; }
-	public boolean shouldReceiveErrors() { return true; }
 	public boolean shouldReceiveFeedback() { return true; }
+	public boolean shouldReceiveErrors() { return true; }
 	public void sendMessage(ITextComponent component, UUID sender)
 	{
 		commandOutput.add(component.getString());

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
-import io.github.lightman314.lightmansconsole.Config;
+import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
@@ -45,7 +45,7 @@ public class ConsoleMessageListener extends SingleChannelListener implements ICo
 			return;
 		//Run command
 		String command = event.getMessage().getContentDisplay();
-		String prefix = Config.SERVER.consoleCommandPrefix.get();
+		String prefix = LDIConfig.SERVER.consoleCommandPrefix.get();
 		if(command.startsWith(prefix))
 		{
 			command = command.substring(prefix.length(), command.length());

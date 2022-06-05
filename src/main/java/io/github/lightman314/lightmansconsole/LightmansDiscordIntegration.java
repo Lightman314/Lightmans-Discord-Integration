@@ -11,8 +11,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkConstants;
 
-import javax.security.auth.login.LoginException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -70,8 +68,8 @@ public class LightmansDiscordIntegration
     			try {
     				MinecraftForge.EVENT_BUS.post(new JDAInitializedEvent(PROXY));
     			} catch(Throwable t) { LOGGER.error("Error initializing JDA listeners.", t); }
-    		} catch(LoginException exception) {
-    			LOGGER.error(exception.getMessage());
+    		} catch(Throwable t) {
+    			LOGGER.error("Error setting up the JDA.", t);
     		}
     	}
         

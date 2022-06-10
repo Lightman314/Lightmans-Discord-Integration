@@ -13,7 +13,7 @@ import com.google.common.collect.Lists;
 
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.MutableComponent;
 
 public class MessageManager {
 	
@@ -249,9 +249,11 @@ public class MessageManager {
 			return result;
 		}
 		
-		public Component formatComponent(Object... format)
+		public MutableComponent getComponent() { return Component.literal(get()); }
+		
+		public MutableComponent formatComponent(Object... format)
 		{
-			return new TextComponent(format(format));
+			return Component.literal(format(format));
 		}
 		
 		private MessageEntry(String key, String comment, String defaultValue, String... formatKeys)

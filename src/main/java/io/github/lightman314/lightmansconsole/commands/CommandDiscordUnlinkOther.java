@@ -10,7 +10,7 @@ import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.MessageArgument;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 public class CommandDiscordUnlinkOther {
 
@@ -33,12 +33,12 @@ public class CommandDiscordUnlinkOther {
 		if(account != null)
 		{
 			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendSuccess(new TextComponent(playerName + " is no longer linked to their discord account."), true);
+			commandContext.getSource().sendSuccess(Component.literal(playerName + " is no longer linked to their discord account."), true);
 			return 1;
 		}
 		else
 		{
-			commandContext.getSource().sendFailure(new TextComponent("Their account is not linked to a discord account."));
+			commandContext.getSource().sendFailure(Component.literal("Their account is not linked to a discord account."));
 			return 0;
 		}
 	}

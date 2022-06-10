@@ -8,7 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 public class CommandReloadMessages {
 
@@ -26,7 +26,7 @@ public class CommandReloadMessages {
 	{
 		MessageManager.reload();
 		
-		commandContext.getSource().sendSuccess(new TextComponent("Messages have been reloaded from file."), true);
+		commandContext.getSource().sendSuccess(Component.literal("Messages have been reloaded from file."), true);
 		
 		return 1;
 		

@@ -12,7 +12,7 @@ import io.github.lightman314.lightmansconsole.discord.links.LinkedAccount;
 import io.github.lightman314.lightmansconsole.discord.links.PendingLink;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 public class CommandDiscordList {
 	
@@ -33,20 +33,20 @@ public class CommandDiscordList {
 		List<LinkedAccount> a = AccountManager.getLinkedAccounts();
 		if(a.size() > 0)
 		{
-			source.sendSuccess(new TextComponent("--------Linked Accounts--------"), false);
-			a.forEach(account-> source.sendSuccess(new TextComponent("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
+			source.sendSuccess(Component.literal("--------Linked Accounts--------"), false);
+			a.forEach(account-> source.sendSuccess(Component.literal("DiscordID: " + account.discordID + "; PlayerID: " + account.playerID + "; PlayerName: " + account.getName()), false));
 		}
 		//List pending links
 		List<PendingLink> pend = AccountManager.getPendingLinks();
 		if(pend.size() > 0)
 		{
-			source.sendSuccess(new TextComponent("--------Pending Links--------"), false);
-			pend.forEach(account -> source.sendSuccess(new TextComponent("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
+			source.sendSuccess(Component.literal("--------Pending Links--------"), false);
+			pend.forEach(account -> source.sendSuccess(Component.literal("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
 		}
 		
 		if(a.size() <= 0 && pend.size() <= 0)
 		{
-			source.sendSuccess(new TextComponent("No discord accounts are linked to this server."), false);
+			source.sendSuccess(Component.literal("No discord accounts are linked to this server."), false);
 		}
 		
 		return 1;

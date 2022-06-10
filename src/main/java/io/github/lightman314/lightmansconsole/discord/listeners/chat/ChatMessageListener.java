@@ -2,7 +2,6 @@ package io.github.lightman314.lightmansconsole.discord.listeners.chat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
@@ -22,8 +21,6 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +38,6 @@ public class ChatMessageListener extends SingleChannelListener {
 	public enum ActivityType { DISABLED, LISTENING, PLAYING, WATCHING, COMPETING, STREAMING }
 	
 	private final MinecraftServer server;
-	private final UUID senderID = new UUID(0,0);
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
@@ -61,7 +57,7 @@ public class ChatMessageListener extends SingleChannelListener {
 			if(LDIConfig.SERVER.chatBotWhitelist.get().contains(event.getAuthor().getId()))
 			{
 				Component message = formatDiscordMessage(MessageManager.M_FORMAT_MINECRAFT_BOT, event.getMember(), event.getMessage(), "bot");
-				server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
+				server.getPlayerList().getPlayers().forEach(player -> player.sendSystemMessage(message));
 				LightmansDiscordIntegration.LOGGER.info(message.getString());
 			}
 			return;
@@ -84,7 +80,7 @@ public class ChatMessageListener extends SingleChannelListener {
 			return;
 		}
 		Component message = formatDiscordMessage(MessageManager.M_FORMAT_MINECRAFT, event.getMember(), event.getMessage(), "user");
-		server.getPlayerList().getPlayers().forEach(player -> player.sendMessage(message, this.senderID));
+		server.getPlayerList().getPlayers().forEach(player -> player.sendSystemMessage(message));
 		LightmansDiscordIntegration.LOGGER.info(message.getString());
 	}
 	
@@ -157,7 +153,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		try {
 			Component playerName = event.getPlayer().getDisplayName();
-			this.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(new TranslatableComponent("multiplayer.player.joined", playerName), playerName));
+			this.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(Component.translatable("multiplayer.player.joined", playerName), playerName));
 			this.updatePlayerCount();
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -167,7 +163,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	{
 		try {
 			Component playerName = event.getPlayer().getDisplayName();
-			this.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(new TranslatableComponent("multiplayer.player.left", playerName), playerName));
+			this.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(Component.translatable("multiplayer.player.left", playerName), playerName));
 			//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
 			this.updatePlayerCount(true);
 		} catch(Exception e) { e.printStackTrace(); }
@@ -222,7 +218,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	public Component formatDiscordMessage(MessageEntry format, Member member, Message message, String userFormat)
 	{
 		String[] splitMessage = format.format(MessageUtil.formatMessageText(message, this.getGuild())).split("\\{" + userFormat + "\\}");
-		MutableComponent result = new TextComponent(splitMessage[0]);
+		MutableComponent result = Component.literal(splitMessage[0]);
 		for(int i = 1; i < splitMessage.length; ++i)
 		{
 			result.append(formatMemberName(member));
@@ -233,10 +229,10 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public static Component formatMemberName(Member member)
 	{
-		return new TextComponent(member.getEffectiveName()).withStyle(Style.EMPTY
+		return Component.literal(member.getEffectiveName()).withStyle(Style.EMPTY
 				.withColor(TextColor.fromRgb(member.getColorRaw()))
 				.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,"<@!" + member.getId() + ">"))
-				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(MessageManager.M_MEMBER_HOVER.get())))
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(MessageManager.M_MEMBER_HOVER.get())))
 				);
 	}
 	

@@ -2,7 +2,6 @@ package io.github.lightman314.lightmansconsole.discord.listeners.console;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
@@ -14,7 +13,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
@@ -65,11 +63,11 @@ public class ConsoleMessageListener extends SingleChannelListener implements Com
 	private CommandSourceStack getCommandSource()
 	{
 		ServerLevel world = server.overworld();
-		return new CommandSourceStack(this, world == null ? Vec3.ZERO : Vec3.atBottomCenterOf(world.getSharedSpawnPos()), Vec2.ZERO, world, 4, "ConsoleBot", new TextComponent("ConsoleBot"), server, null);
+		return new CommandSourceStack(this, world == null ? Vec3.ZERO : Vec3.atBottomCenterOf(world.getSharedSpawnPos()), Vec2.ZERO, world, 4, "ConsoleBot", Component.literal("ConsoleBot"), server, null);
 	}
 
 	@Override
-	public void sendMessage(Component component, UUID senderUUID) {
+	public void sendSystemMessage(Component component) {
 		this.output.add(component.getString());
 	}
 

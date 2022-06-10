@@ -2,7 +2,6 @@ package io.github.lightman314.lightmansconsole.discord.listeners.account;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.google.common.base.Supplier;
 
@@ -24,7 +23,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
@@ -94,14 +92,16 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				if(linkingUser != null)
 				{
 					List<String> output = AccountManager.tryLinkUser2(linkingUser.getUser(), playerName);
-					MessageUtil.sendTextMessage(event.getTextChannel(), output);
+					
 					if(LDIConfig.SERVER.accountWhitelist.get())
 					{
 						MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 						server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
 						MessageUtil.sendTextMessage(event.getTextChannel(), commandOutput);
+						output.addAll(commandOutput);
 						commandOutput.clear();
 					}
+					MessageUtil.sendTextMessage(event.getTextChannel(), output);
 					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.get());
 				}
 				else
@@ -218,7 +218,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	private CommandSourceStack getCommandSource()
 	{
 		ServerLevel level = server.overworld();
-		return new CommandSourceStack(this, level == null ? Vec3.ZERO : Vec3.atBottomCenterOf(level.getSharedSpawnPos()), Vec2.ZERO, level, 4, "AccountBot", new TextComponent("AccountBot"), server, null);
+		return new CommandSourceStack(this, level == null ? Vec3.ZERO : Vec3.atBottomCenterOf(level.getSharedSpawnPos()), Vec2.ZERO, level, 4, "AccountBot", Component.literal("AccountBot"), server, null);
 	}
 	
 	public void registerCommand(AccountCommand command)
@@ -230,7 +230,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	public boolean shouldInformAdmins() { return true; }
 	public boolean acceptsFailure() { return true; }
 	public boolean acceptsSuccess() { return true; }
-	public void sendMessage(Component component, UUID sender)
+	public void sendSystemMessage(Component component)
 	{
 		commandOutput.add(component.getString());
 	}

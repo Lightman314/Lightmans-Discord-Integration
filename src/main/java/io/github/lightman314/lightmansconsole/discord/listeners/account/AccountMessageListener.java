@@ -94,14 +94,15 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				if(linkingUser != null)
 				{
 					List<String> output = AccountManager.tryLinkUser2(linkingUser.getUser(), playerName);
-					MessageUtil.sendTextMessage(event.getTextChannel(), output);
 					if(LDIConfig.SERVER.accountWhitelist.get())
 					{
 						MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 						server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
 						MessageUtil.sendTextMessage(event.getTextChannel(), commandOutput);
+						output.addAll(commandOutput);
 						commandOutput.clear();
 					}
+					MessageUtil.sendTextMessage(event.getTextChannel(), output);
 					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.get());
 				}
 				else

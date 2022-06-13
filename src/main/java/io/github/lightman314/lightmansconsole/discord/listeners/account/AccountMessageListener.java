@@ -37,9 +37,9 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	
 	private final List<AccountCommand> REGISTERED_COMMANDS = new ArrayList<>();
 	
-	static List<String> commandOutput = new ArrayList<>();
+	private List<String> commandOutput = new ArrayList<>();
 	MinecraftServer server;
-	static CommandSourceStack commandSource;
+	private final CommandSourceStack commandSource;
 	
 	Supplier<JDA> jdaSource;
 	public JDA getJDA() { return this.jdaSource.get(); }
@@ -49,7 +49,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	{
 		this.jdaSource = () -> LightmansDiscordIntegration.PROXY.getJDA();
 		this.server = ServerLifecycleHooks.getCurrentServer();
-		commandSource = getCommandSource();
+		this.commandSource = getCommandSource();
 		MinecraftForge.EVENT_BUS.post(new RegisterAccountCommandEvent(this));
 	}
 	
@@ -91,15 +91,18 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				}
 				if(linkingUser != null)
 				{
-					List<String> output = AccountManager.tryLinkUser2(linkingUser.getUser(), playerName);
-					
+					List<String> output = new ArrayList<>();
+					try {
+						output.addAll(AccountManager.tryLinkUser2(linkingUser.getUser(), playerName));
+					} catch(Exception e) { e.printStackTrace(); }
 					if(LDIConfig.SERVER.accountWhitelist.get())
 					{
-						MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-						server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
-						MessageUtil.sendTextMessage(event.getTextChannel(), commandOutput);
-						output.addAll(commandOutput);
-						commandOutput.clear();
+						try {
+							MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+							server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
+							output.addAll(this.commandOutput);
+							this.commandOutput.clear();
+						} catch(Exception e) { e.printStackTrace(); }
 					}
 					MessageUtil.sendTextMessage(event.getTextChannel(), output);
 					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.get());
@@ -217,7 +220,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	
 	private CommandSourceStack getCommandSource()
 	{
-		ServerLevel level = server.overworld();
+		ServerLevel level = this.server.overworld();
 		return new CommandSourceStack(this, level == null ? Vec3.ZERO : Vec3.atBottomCenterOf(level.getSharedSpawnPos()), Vec2.ZERO, level, 4, "AccountBot", Component.literal("AccountBot"), server, null);
 	}
 	
@@ -232,7 +235,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	public boolean acceptsSuccess() { return true; }
 	public void sendSystemMessage(Component component)
 	{
-		commandOutput.add(component.getString());
+		this.commandOutput.add(component.getString());
 	}
 	
 	public static class RegisterAccountCommandEvent extends Event

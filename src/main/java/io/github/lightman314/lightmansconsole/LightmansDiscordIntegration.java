@@ -44,11 +44,6 @@ public class LightmansDiscordIntegration
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-        
-       if(!(PROXY instanceof ServerProxy))
-       {
-    	   LOGGER.warn("Running Lightman's Discord Integration on a client. Mod will do nothing.");
-       }
        
     }
     

@@ -37,11 +37,14 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public enum ActivityType { DISABLED, LISTENING, PLAYING, WATCHING, COMPETING, STREAMING }
 	
+	private static ChatMessageListener instance = null;
+	
 	private final MinecraftServer server;
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
 		super(channelID, () -> LightmansDiscordIntegration.PROXY.getJDA());
+		instance = this;
 		this.server = ServerLifecycleHooks.getCurrentServer();
 		this.sendTextMessage(MessageManager.M_SERVER_BOOT.get());
 		this.setTopic(MessageManager.M_TOPIC_BOOT.get());
@@ -213,6 +216,16 @@ public class ChatMessageListener extends SingleChannelListener {
 			this.setTopic(MessageManager.M_TOPIC_OFFLINE.get());
 			this.setActivityText(MessageManager.M_ACTIVITY_OFFLINE.get());
 		} catch(Exception e) { e.printStackTrace(); }
+	}
+	
+	public static boolean isPresent() {
+		return instance != null;
+	}
+	
+	public static void sendChatMessage(String message) 
+	{
+		if(instance != null)
+			instance.sendTextMessage(message);
 	}
 	
 	public Component formatDiscordMessage(MessageEntry format, Member member, Message message, String userFormat)

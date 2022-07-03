@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordList;
+import io.github.lightman314.lightmansconsole.commands.CommandDiscordMessage;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkOther;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkSelf;
 import io.github.lightman314.lightmansconsole.commands.CommandReloadMessages;
@@ -41,6 +42,8 @@ public class ForgeEventListener {
 		 CommandDiscordList.register(commandDispatcher);
 		 //Reload Messages Command
 		 CommandReloadMessages.register(commandDispatcher);
+		 //Discord Messages Command
+		 CommandDiscordMessage.register(commandDispatcher);
 	 }
 	
 }

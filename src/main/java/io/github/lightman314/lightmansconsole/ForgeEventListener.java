@@ -2,11 +2,7 @@ package io.github.lightman314.lightmansconsole;
 
 import com.mojang.brigadier.CommandDispatcher;
 
-import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
-import io.github.lightman314.lightmansconsole.commands.CommandDiscordList;
-import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkOther;
-import io.github.lightman314.lightmansconsole.commands.CommandDiscordUnlinkSelf;
-import io.github.lightman314.lightmansconsole.commands.CommandReloadMessages;
+import io.github.lightman314.lightmansconsole.commands.*;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -41,6 +37,8 @@ public class ForgeEventListener {
 		 CommandDiscordList.register(commandDispatcher);
 		 //Reload Messages Command
 		 CommandReloadMessages.register(commandDispatcher);
+		 ///Discord Messages Command
+		 CommandDiscordMessage.register(commandDispatcher);
 	 }
 	
 }

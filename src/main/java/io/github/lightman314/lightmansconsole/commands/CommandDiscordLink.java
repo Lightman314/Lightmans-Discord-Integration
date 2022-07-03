@@ -20,7 +20,7 @@ public class CommandDiscordLink {
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
 		LiteralArgumentBuilder<CommandSourceStack> discordLinkCommand
-			= Commands.literal("linkdiscord")
+			= Commands.literal(COMMAND_LITERAL)
 				.requires((commandSource) -> commandSource.getEntity() instanceof Player)
 				.then(Commands.argument("linkkey", MessageArgument.message())
 						.executes(CommandDiscordLink::linkPlayer)

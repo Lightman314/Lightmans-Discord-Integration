@@ -101,6 +101,9 @@ public class MessageManager {
 	//'/unlinkdiscord'
 	public static final MessageEntry M_COMMAND_UNLINK_COMPLETE = MessageEntry.create("command_unlinkdiscord_complete", "Message displayed when the player successfully runs the /unlinkdiscord command.\n{user} for their formerly linked discord name.", "You are no longer linked to {user}.", "user");
 	public static final MessageEntry M_COMMAND_UNLINK_FAILED = MessageEntry.create("command_unlinkdiscord_fail", "Message displayed when the player runs the /unlinkdiscord command when they're not linked.", "Your account is not linked to a discord account.");
+	//'telldiscord'
+	public static final MessageEntry M_COMMAND_TELLDISCORD = MessageEntry.create("command_telldiscord", "Message displayed when an admin runs the /telldiscord <message> command successfully!", "Message '{message}' sent!", "message");
+	
 	
 	public static void reload()
 	{

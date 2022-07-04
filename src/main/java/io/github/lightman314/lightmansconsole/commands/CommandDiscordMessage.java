@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener;
+import io.github.lightman314.lightmansconsole.message.MessageManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.MessageArgument;
@@ -18,6 +19,7 @@ public class CommandDiscordMessage {
 	{
 		LiteralArgumentBuilder<CommandSourceStack> discordMessageCommand
 			= Commands.literal(COMMAND_LITERAL)
+				.requires(c -> c.hasPermission(2) && ChatMessageListener.isPresent())
 				.then(Commands.argument("message", MessageArgument.message())
 						.executes(CommandDiscordMessage::sendMessage)
 						);
@@ -31,6 +33,8 @@ public class CommandDiscordMessage {
 		String message = MessageArgument.getMessage(commandContext, "message").getString();
 		
 		ChatMessageListener.sendChatMessage(message);
+		
+		commandContext.getSource().sendSuccess(MessageManager.M_COMMAND_TELLDISCORD.formatComponent(message), true);
 		
 		return 1;
 		

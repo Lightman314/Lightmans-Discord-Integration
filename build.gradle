@@ -9,7 +9,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.19-0.0.3.8'
+version = '1.19-0.0.3.9'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansdiscord'
 
@@ -105,12 +105,14 @@ repositories {
 
 dependencies {
 
-    minecraft 'net.minecraftforge:forge:1.19-41.0.16'
+    minecraft 'net.minecraftforge:forge:1.19-41.0.94'
 
 	//Discord libraries
     embed("net.dv8tion:JDA:5.0.0-alpha.12") {
         exclude group: 'okhttp3', module: "okhttp"
     }
+    
+    compileOnly("curse.maven:vanishmod-423535:3871873")
 	
 }
 

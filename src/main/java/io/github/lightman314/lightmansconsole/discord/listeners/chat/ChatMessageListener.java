@@ -7,6 +7,7 @@ import com.google.common.base.Supplier;
 
 import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
+import io.github.lightman314.lightmansconsole.compat.CompatibilityUtil;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.message.MessageManager.MessageEntry;
@@ -68,8 +69,8 @@ public class ChatMessageListener extends SingleChannelListener {
 		if(event.getMessage().getContentRaw().equals(LDIConfig.SERVER.listPlayerCommand.get()))
 		{
 			List<String> output = new ArrayList<>();
-			List<ServerPlayer> playerList = getPlayerList();
-			output.add("There are " + getPlayerCount() + " players online.");
+			List<ServerPlayer> playerList = CompatibilityUtil.getPlayerList();
+			output.add("There are " + playerList.size() + " players online.");
 			String playerText = "";
 			for(ServerPlayer player : playerList)
 			{
@@ -91,10 +92,11 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public void updatePlayerCount(boolean shrink)
 	{
+		int playerCount = this.getPlayerCount(shrink);
 		//Update the channel topic
-		this.setTopic(MessageManager.M_TOPIC_TEXT.format(this.getPlayerCount(shrink)));
+		this.setTopic(MessageManager.M_TOPIC_TEXT.format(playerCount));
 		//Update the bot's activity
-		this.setActivityText(MessageManager.M_ACTIVITY_TEXT.format(this.getPlayerCount(shrink), this.getPlayerLimit()));
+		this.setActivityText(MessageManager.M_ACTIVITY_TEXT.format(playerCount, this.getPlayerLimit()));
 	}
 	
 	public void setActivityText(String text)
@@ -133,13 +135,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	private int getPlayerCount()
 	{
-		return ServerLifecycleHooks.getCurrentServer().getPlayerCount();
-	}
-	
-	private List<ServerPlayer> getPlayerList()
-	{
-		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-		return server.getPlayerList().getPlayers();
+		return CompatibilityUtil.getPlayerList().size();
 	}
 	
 	@SubscribeEvent
@@ -154,21 +150,37 @@ public class ChatMessageListener extends SingleChannelListener {
 	@SubscribeEvent
 	public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event)
 	{
+		if(CompatibilityUtil.isPlayerVisible(event.getEntity()))
+			fakePlayerJoin(event.getEntity());
+	}
+	
+	public static void fakePlayerJoin(Player player) {
 		try {
-			Component playerName = event.getPlayer().getDisplayName();
-			this.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(Component.translatable("multiplayer.player.joined", playerName), playerName));
-			this.updatePlayerCount();
+			if(instance != null)
+			{
+				Component playerName = player.getDisplayName();
+				instance.sendTextMessage(MessageManager.M_PLAYER_JOIN.format(Component.translatable("multiplayer.player.joined", playerName), playerName));
+				instance.updatePlayerCount();
+			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
 	@SubscribeEvent
 	public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event)
 	{
+		if(CompatibilityUtil.isPlayerVisible(event.getEntity()))
+			fakePlayerLeave(event.getEntity(), true);
+	}
+	
+	public static void fakePlayerLeave(Player player, boolean shrinkPlayerCount) {
 		try {
-			Component playerName = event.getPlayer().getDisplayName();
-			this.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(Component.translatable("multiplayer.player.left", playerName), playerName));
-			//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
-			this.updatePlayerCount(true);
+			if(instance != null)
+			{
+				Component playerName = player.getDisplayName();
+				instance.sendTextMessage(MessageManager.M_PLAYER_LEAVE.format(Component.translatable("multiplayer.player.left", playerName), playerName));
+				//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
+				instance.updatePlayerCount(shrinkPlayerCount);
+			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
@@ -178,11 +190,11 @@ public class ChatMessageListener extends SingleChannelListener {
 		try {
 			if(event.getEntity() instanceof Player)
 			{
-				this.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
+				this.sendTextMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntity()), event.getEntity().getDisplayName()));
 			}
-			else if(event.getEntityLiving().hasCustomName())
+			else if(event.getEntity().hasCustomName() && LDIConfig.SERVER.postEntityDeaths.get())
 			{
-				this.sendTextMessage(MessageManager.M_ENTITY_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntityLiving().getDisplayName()));
+				this.sendTextMessage(MessageManager.M_ENTITY_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntity()), event.getEntity().getDisplayName()));
 			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -191,9 +203,9 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void onAchievementGet(AdvancementEvent ev)
 	{
 		try {
-			if(ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat())
+			if(ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat() && CompatibilityUtil.isPlayerVisible(ev.getEntity()))
 			{
-				this.sendTextMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getPlayer().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
+				this.sendTextMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getEntity().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
 			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}

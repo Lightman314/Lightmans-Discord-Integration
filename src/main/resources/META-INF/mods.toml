@@ -17,7 +17,7 @@ Allows users to run console commands via discord.
 [[dependencies.lightmansdiscord]]
     modId="forge"
     mandatory=true
-    versionRange="[41,)"
+    versionRange="[41.0.94,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.lightmansdiscord]]

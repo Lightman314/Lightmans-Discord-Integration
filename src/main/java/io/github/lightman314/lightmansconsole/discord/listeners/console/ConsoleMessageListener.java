@@ -29,8 +29,8 @@ public class ConsoleMessageListener extends SingleChannelListener implements Com
 	public ConsoleMessageListener(Supplier<String> consoleChannel)
 	{
 		super(consoleChannel, LightmansDiscordIntegration.PROXY::getJDA);
-		server = ServerLifecycleHooks.getCurrentServer();
-		commandSource = this.getCommandSource();
+		this.server = ServerLifecycleHooks.getCurrentServer();
+		this.commandSource = this.getCommandSource();
 		this.sendTextMessage(MessageManager.M_CONSOLEBOT_READY.get());
 	}
 	
@@ -54,7 +54,7 @@ public class ConsoleMessageListener extends SingleChannelListener implements Com
 			else
 			{
 				this.output.clear();
-				server.getCommands().performCommand(commandSource, command);
+				server.getCommands().performPrefixedCommand(this.commandSource, command);
 				this.sendTextMessage(this.output);
 			}
 		}

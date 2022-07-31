@@ -99,7 +99,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 					{
 						try {
 							MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-							server.getCommands().performCommand(commandSource, "whitelist add " + playerName);
+							server.getCommands().performPrefixedCommand(commandSource, "whitelist add " + playerName);
 							output.addAll(this.commandOutput);
 							this.commandOutput.clear();
 						} catch(Exception e) { e.printStackTrace(); }

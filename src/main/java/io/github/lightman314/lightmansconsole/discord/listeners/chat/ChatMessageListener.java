@@ -142,7 +142,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void onServerMessage(ServerChatEvent event)
 	{
 		try {
-			String message = MessageManager.M_FORMAT_DISCORD.format(event.getPlayer().getDisplayName().getString(), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
+			String message = MessageManager.M_FORMAT_DISCORD.format(event.getPlayer().getDisplayName().getString(), MessageUtil.formatMinecraftMessage(event.getMessage().getString(), this.getGuild()));
 			this.sendTextMessage(message);
 		} catch(Exception e) { e.printStackTrace(); }
 	}

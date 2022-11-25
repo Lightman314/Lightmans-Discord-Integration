@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.NotNull;
 
 @Mod.EventBusSubscriber
 public class AccountManager extends SavedData{
@@ -37,15 +38,9 @@ public class AccountManager extends SavedData{
 	
 	public AccountManager() { }
 	
-	public AccountManager(CompoundTag tag) { this.load(tag); }
-
-	public static void markAsDirty()
+	public AccountManager(CompoundTag compound)
 	{
-		get().setDirty();
-	}
-	
-	public void load(CompoundTag compound) {
-		
+
 		if(compound.contains("LinkedAccounts", Tag.TAG_LIST))
 		{
 			this.linkedAccounts.clear();
@@ -80,7 +75,7 @@ public class AccountManager extends SavedData{
 				this.currencyNotifications.add(thisCompound.getString("id"));
 			}
 		}
-		
+
 		//Convert partial links into full links
 		if(compound.contains("PartialLinks", Tag.TAG_LIST))
 		{
@@ -103,18 +98,14 @@ public class AccountManager extends SavedData{
 				}
 			}
 		}
-		
-		
 	}
 
 	@Override
-	public CompoundTag save(CompoundTag compound) {
+	public @NotNull CompoundTag save(@NotNull CompoundTag compound) {
 		
 		ListTag accountList = new ListTag();
-		for(int i = 0; i < linkedAccounts.size(); i++)
-		{
+		for (LinkedAccount thisAccount : linkedAccounts) {
 			CompoundTag thisCompound = new CompoundTag();
-			LinkedAccount thisAccount = linkedAccounts.get(i);
 			thisCompound.putUUID("id", thisAccount.playerID);
 			//thisCompound.putString("name", thisAccount.getName());
 			thisCompound.putString("discord", thisAccount.discordID);
@@ -123,10 +114,8 @@ public class AccountManager extends SavedData{
 		compound.put("LinkedAccounts", accountList);
 		
 		ListTag pendingLinkList = new ListTag();
-		for(int i = 0; i < this.pendingLinks.size(); i++)
-		{
+		for (PendingLink thisLink : this.pendingLinks) {
 			CompoundTag thisCompound = new CompoundTag();
-			PendingLink thisLink = pendingLinks.get(i);
 			thisCompound.putString("id", thisLink.userID);
 			thisCompound.putString("key", thisLink.linkKey);
 			pendingLinkList.add(thisCompound);
@@ -134,10 +123,9 @@ public class AccountManager extends SavedData{
 		compound.put("PendingLinks", pendingLinkList);
 		
 		ListTag currencyNotificationList = new ListTag();
-		for(int i = 0; i < this.currencyNotifications.size(); i++)
-		{
+		for (String currencyNotification : this.currencyNotifications) {
 			CompoundTag thisCompound = new CompoundTag();
-			thisCompound.putString("id", this.currencyNotifications.get(i));
+			thisCompound.putString("id", currencyNotification);
 			currencyNotificationList.add(thisCompound);
 		}
 		compound.put("CurrencyNotifications", currencyNotificationList);
@@ -148,10 +136,9 @@ public class AccountManager extends SavedData{
 	//Non-static functions
 	private LinkedAccount getAccountFromMinecraftName(String name)
 	{
-		for(int i = 0; i < this.linkedAccounts.size(); i++)
-		{
-			if(this.linkedAccounts.get(i).equalsPlayerName(name))
-				return this.linkedAccounts.get(i);
+		for (LinkedAccount linkedAccount : this.linkedAccounts) {
+			if (linkedAccount.equalsPlayerName(name))
+				return linkedAccount;
 		}
 		return null;
 	}
@@ -163,10 +150,9 @@ public class AccountManager extends SavedData{
 	
 	private LinkedAccount getAccountFromDiscordID(String discordID)
 	{
-		for(int i = 0; i < this.linkedAccounts.size(); i++)
-		{
-			if(this.linkedAccounts.get(i).equalsDiscordID(discordID))
-				return this.linkedAccounts.get(i);
+		for (LinkedAccount linkedAccount : this.linkedAccounts) {
+			if (linkedAccount.equalsDiscordID(discordID))
+				return linkedAccount;
 		}
 		return null;
 	}
@@ -188,10 +174,9 @@ public class AccountManager extends SavedData{
 	
 	private LinkedAccount getAccountFromPlayer(Player player)
 	{
-		for(int i = 0; i < this.linkedAccounts.size(); i++)
-		{
-			if(this.linkedAccounts.get(i).equalsPlayer(player))
-				return this.linkedAccounts.get(i);
+		for (LinkedAccount linkedAccount : this.linkedAccounts) {
+			if (linkedAccount.equalsPlayer(player))
+				return linkedAccount;
 		}
 		return null;
 	}
@@ -203,10 +188,9 @@ public class AccountManager extends SavedData{
 	
 	private LinkedAccount getAccountFromPlayerID(UUID playerID)
 	{
-		for(int i = 0; i < this.linkedAccounts.size(); i++)
-		{
-			if(this.linkedAccounts.get(i).playerID.equals(playerID))
-				return this.linkedAccounts.get(i);
+		for (LinkedAccount linkedAccount : this.linkedAccounts) {
+			if (linkedAccount.playerID.equals(playerID))
+				return linkedAccount;
 		}
 		return null;
 	}
@@ -227,20 +211,18 @@ public class AccountManager extends SavedData{
 	
 	private PendingLink getPendingLinkFromUser(User user)
 	{
-		for(int i = 0; i < this.pendingLinks.size(); i++)
-		{
-			if(this.pendingLinks.get(i).userID.equals(user.getId()))
-				return this.pendingLinks.get(i);
+		for (PendingLink pendingLink : this.pendingLinks) {
+			if (pendingLink.userID.equals(user.getId()))
+				return pendingLink;
 		}
 		return null;
 	}
 	
 	private PendingLink getPendingLinkFromKey(String linkKey)
 	{
-		for(int i = 0; i < this.pendingLinks.size(); i++)
-		{
-			if(this.pendingLinks.get(i).linkKey.equals(linkKey))
-				return this.pendingLinks.get(i);
+		for (PendingLink pendingLink : this.pendingLinks) {
+			if (pendingLink.linkKey.equals(linkKey))
+				return pendingLink;
 		}
 		return null;
 	}
@@ -258,8 +240,8 @@ public class AccountManager extends SavedData{
 	private static AccountManager get()
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-		ServerLevel world = server.getLevel(Level.OVERWORLD);
-		return world.getDataStorage().computeIfAbsent((compound) -> new AccountManager(compound), () -> new AccountManager(), DATA_NAME);
+		ServerLevel world = server.overworld();
+		return world.getDataStorage().computeIfAbsent(AccountManager::new, AccountManager::new, DATA_NAME);
 	}
 	
 	/**
@@ -327,7 +309,7 @@ public class AccountManager extends SavedData{
 		return ImmutableList.of(MessageManager.M_UNLINK_FAIL.get());
 	}
 	
-	public static List<String> tryForceUnlinkUser(JDA jda, String playerName)
+	public static List<String> tryForceUnlinkUser(String playerName)
 	{
 		AccountManager manager = get();
 		LinkedAccount account = manager.getAccountFromMinecraftName(playerName);

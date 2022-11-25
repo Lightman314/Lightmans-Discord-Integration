@@ -13,13 +13,7 @@ public class MultiChannelListener extends ListenerAdapter{
 	public static void ignoreChannel(Supplier<String> channel) { if(!ignoreChannels.contains(channel)) ignoreChannels.add(channel); }
 	public static void allowChannel(Supplier<String> channel) { ignoreChannels.remove(channel); }
 	
-	public static List<String> convertListType(List<? extends String> list) {
-		List<String> result = new ArrayList<>();
-		for(String value : list) {
-			result.add(value);
-		}
-		return result;
-	}
+	public static List<String> convertListType(List<? extends String> list) { return new ArrayList<>(list); }
 	
 	public static List<String> getIgnoredChannels() { 
 		List<String> list = new ArrayList<>();

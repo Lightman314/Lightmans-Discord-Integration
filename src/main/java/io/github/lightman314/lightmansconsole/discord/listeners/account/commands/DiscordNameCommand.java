@@ -20,7 +20,7 @@ public class DiscordNameCommand extends AccountCommand{
 	}
 
 	@Override
-	public List<String> runCommand(String input, LinkedAccount account, Guild guild, List<String> output) {
+	public void runCommand(String input, LinkedAccount account, Guild guild, List<String> output) {
 		
 		String minecraftName = input.substring(this.literal.length()).replace(" ", "");
 		LinkedAccount la = AccountManager.getLinkedAccountFromMinecraftName(minecraftName);
@@ -30,8 +30,7 @@ public class DiscordNameCommand extends AccountCommand{
 		}
 		else
 			output.add(MessageManager.M_DISCORDNAME_FAIL.format(minecraftName));
-		
-		return output;
+
 	}
 
 }

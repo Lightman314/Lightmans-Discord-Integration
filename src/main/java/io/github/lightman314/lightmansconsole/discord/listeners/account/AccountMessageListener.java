@@ -3,8 +3,6 @@ package io.github.lightman314.lightmansconsole.discord.listeners.account;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Supplier;
-
 import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.commands.CommandDiscordLink;
@@ -15,7 +13,6 @@ import io.github.lightman314.lightmansconsole.discord.listeners.types.MultiChann
 import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.util.MemberUtil;
 import io.github.lightman314.lightmansconsole.util.MessageUtil;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -37,19 +34,12 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	
 	private final List<AccountCommand> REGISTERED_COMMANDS = new ArrayList<>();
 	
-	private List<String> commandOutput = new ArrayList<>();
+	private final List<String> commandOutput = new ArrayList<>();
 	MinecraftServer server;
-	private final CommandSourceStack commandSource;
-	
-	Supplier<JDA> jdaSource;
-	public JDA getJDA() { return this.jdaSource.get(); }
-	Supplier<String> prefixSource = () -> LDIConfig.SERVER.accountCommandPrefix.get();
 	
 	public AccountMessageListener()
 	{
-		this.jdaSource = () -> LightmansDiscordIntegration.PROXY.getJDA();
 		this.server = ServerLifecycleHooks.getCurrentServer();
-		this.commandSource = getCommandSource();
 		MinecraftForge.EVENT_BUS.post(new RegisterAccountCommandEvent(this));
 	}
 	
@@ -80,9 +70,9 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				String subcommand = command.substring(8);
 				LightmansDiscordIntegration.LOGGER.info(command + " -> " + subcommand);
 				Member linkingUser = MemberUtil.getMemberFromPing(event.getGuild(), subcommand);
-				String playerName = "";
+				String playerName;
 				int endIndex = subcommand.indexOf('>');
-				if(endIndex >= 0 & endIndex < subcommand.length())
+				if(endIndex >= 0)
 					playerName = subcommand.substring(endIndex + 1).replace(" ", ""); //Wipe empty space from the name
 				else
 				{
@@ -99,17 +89,17 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 					{
 						try {
 							MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-							server.getCommands().performPrefixedCommand(commandSource, "whitelist add " + playerName);
+							server.getCommands().performPrefixedCommand(this.getCommandSource(), "whitelist add " + playerName);
 							output.addAll(this.commandOutput);
 							this.commandOutput.clear();
 						} catch(Exception e) { e.printStackTrace(); }
 					}
-					MessageUtil.sendTextMessage(event.getTextChannel(), output);
+					MessageUtil.sendTextMessage(event.getChannel(), output);
 					MessageUtil.sendPrivateMessage(linkingUser.getUser(), MessageManager.M_LINKUSER_WELCOME.get());
 				}
 				else
 				{
-					MessageUtil.sendTextMessage(event.getTextChannel(), MessageManager.M_ERROR_PING.get());
+					MessageUtil.sendTextMessage(event.getChannel(), MessageManager.M_ERROR_PING.get());
 				}
 			}
 			else if(command.startsWith("unlinkplayer "))
@@ -120,8 +110,8 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 					return;
 				}
 				String playerName = command.substring(13);
-				List<String> output = AccountManager.tryForceUnlinkUser(event.getJDA(), playerName);
-				MessageUtil.sendTextMessage(event.getTextChannel(), output);
+				List<String> output = AccountManager.tryForceUnlinkUser(playerName);
+				MessageUtil.sendTextMessage(event.getChannel(), output);
 			}
 			else if(command.startsWith("link"))
 			{
@@ -136,9 +126,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 			}
 			else if(command.startsWith("unlink"))
 			{
-				List<String> output = new ArrayList<>();
-				output = AccountManager.tryUnlinkUser(event.getAuthor());
-				MessageUtil.sendTextMessage(event.getChannel(), output);
+				MessageUtil.sendTextMessage(event.getChannel(), AccountManager.tryUnlinkUser(event.getAuthor()));
 			}
 			else if(command.startsWith("discordlist"))
 			{
@@ -189,7 +177,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 				MessageUtil.sendTextMessage(event.getChannel(), output);
 			}else
 			{
-				List<String> output = new ArrayList<>();
+				final List<String> output = new ArrayList<>();
 				//Get the linked account for this user
 				LinkedAccount account = AccountManager.getLinkedAccountFromUser(event.getAuthor());
 				REGISTERED_COMMANDS.forEach(c ->{
@@ -209,10 +197,11 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	
 	public static boolean isAdmin(Member member)
 	{
+		if(member == null)
+			return false;
 		List<Role> roles = member.getRoles();
-		for(int i = 0; i < roles.size(); i++)
-		{
-			if(LDIConfig.SERVER.accountAdminRole.get().contains(roles.get(i).getId()))
+		for (Role role : roles) {
+			if (LDIConfig.SERVER.accountAdminRole.get().contains(role.getId()))
 				return true;
 		}
 		return false;
@@ -221,7 +210,7 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 	private CommandSourceStack getCommandSource()
 	{
 		ServerLevel level = this.server.overworld();
-		return new CommandSourceStack(this, level == null ? Vec3.ZERO : Vec3.atBottomCenterOf(level.getSharedSpawnPos()), Vec2.ZERO, level, 4, "AccountBot", Component.literal("AccountBot"), server, null);
+		return new CommandSourceStack(this, Vec3.atBottomCenterOf(level.getSharedSpawnPos()), Vec2.ZERO, level, 4, "AccountBot", Component.literal("AccountBot"), server, null);
 	}
 	
 	public void registerCommand(AccountCommand command)
@@ -248,10 +237,8 @@ public class AccountMessageListener extends ListenerAdapter implements CommandSo
 			this.listener = listener;
 		}
 		
-		public void registerCommand(AccountCommand command)
-		{
+		public void registerCommand(AccountCommand command) {
 			this.listener.registerCommand(command);
-			command.setup(this.listener.jdaSource, this.listener.prefixSource);
 		}
 		
 	}

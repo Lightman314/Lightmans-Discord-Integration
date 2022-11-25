@@ -44,7 +44,7 @@ public class CommandDiscordList {
 			pend.forEach(account -> source.sendSuccess(Component.literal("DiscordID: " + account.userID + "; LinkKey: " + account.linkKey), false));
 		}
 		
-		if(a.size() <= 0 && pend.size() <= 0)
+		if(a.size() == 0 && pend.size() == 0)
 		{
 			source.sendSuccess(Component.literal("No discord accounts are linked to this server."), false);
 		}

@@ -18,10 +18,9 @@ public class LinkedAccount {
 	public User getUser() { return LightmansDiscordIntegration.PROXY.getJDA().getUserById(this.discordID); }
 	public Member getMember() {
 		List<Guild> guilds = LightmansDiscordIntegration.PROXY.getJDA().getGuilds();
-		for(int i = 0; i < guilds.size(); ++i)
-		{
-			Member m = guilds.get(i).getMemberById(this.discordID);
-			if(m != null)
+		for (Guild guild : guilds) {
+			Member m = guild.getMemberById(this.discordID);
+			if (m != null)
 				return m;
 		}
 		return null;

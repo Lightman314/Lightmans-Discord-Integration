@@ -8,7 +8,7 @@ import com.google.common.base.Supplier;
 
 import io.github.lightman314.lightmansconsole.LDIConfig;
 import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
-import io.github.lightman314.lightmansconsole.compat.CompatibilityUtil;
+import io.github.lightman314.lightmansconsole.compat.PlayerVisibilityUtil;
 import io.github.lightman314.lightmansconsole.discord.listeners.types.SingleChannelListener;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
 import io.github.lightman314.lightmansconsole.message.MessageManager.MessageEntry;
@@ -48,7 +48,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public ChatMessageListener(Supplier<String> channelID)
 	{
-		super(channelID, () -> LightmansDiscordIntegration.PROXY.getJDA());
+		super(channelID, LightmansDiscordIntegration.PROXY::getJDA);
 		instance = this;
 		this.server = ServerLifecycleHooks.getCurrentServer();
 		this.sendTextMessage(MessageManager.M_SERVER_BOOT.get());
@@ -73,17 +73,17 @@ public class ChatMessageListener extends SingleChannelListener {
 		if(event.getMessage().getContentRaw().equals(LDIConfig.SERVER.listPlayerCommand.get()))
 		{
 			List<String> output = new ArrayList<>();
-			List<ServerPlayer> playerList = CompatibilityUtil.getPlayerList();
+			List<ServerPlayer> playerList = PlayerVisibilityUtil.getPlayerList();
 			output.add("There are " + playerList.size() + " players online.");
-			String playerText = "";
+			StringBuilder playerText = new StringBuilder();
 			for(ServerPlayer player : playerList)
 			{
-				if(playerText != "")
-					playerText += ", ";
-				playerText += player.getName().getString();
+				if(!playerText.toString().equals(""))
+					playerText.append(", ");
+				playerText.append(player.getName().getString());
 			}
 			if(playerText.length() > 0)
-				output.add(playerText);
+				output.add(playerText.toString());
 			this.sendTextMessage(output);
 			return;
 		}
@@ -105,25 +105,13 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	public void setActivityText(String text)
 	{
-		switch(LDIConfig.SERVER.botActivityType.get())
-		{
-		case LISTENING:
-			this.getJDA().getPresence().setActivity(Activity.listening(text));
-			break;
-		case PLAYING:
-			this.getJDA().getPresence().setActivity(Activity.playing(text));
-			break;
-		case WATCHING:
-			this.getJDA().getPresence().setActivity(Activity.watching(text));
-			break;
-		case COMPETING:
-			this.getJDA().getPresence().setActivity(Activity.competing(text));
-			break;
-		case STREAMING:
-			this.getJDA().getPresence().setActivity(Activity.streaming(text, LDIConfig.SERVER.botStreamURL.get()));
-			break;
-		default:
-			//Do nothing if disabled
+		switch (LDIConfig.SERVER.botActivityType.get()) {
+			case LISTENING -> this.getJDA().getPresence().setActivity(Activity.listening(text));
+			case PLAYING -> this.getJDA().getPresence().setActivity(Activity.playing(text));
+			case WATCHING -> this.getJDA().getPresence().setActivity(Activity.watching(text));
+			case COMPETING -> this.getJDA().getPresence().setActivity(Activity.competing(text));
+			case STREAMING -> this.getJDA().getPresence().setActivity(Activity.streaming(text, LDIConfig.SERVER.botStreamURL.get()));
+			default -> {} //Do nothing if disabled
 		}
 	}
 	
@@ -139,14 +127,14 @@ public class ChatMessageListener extends SingleChannelListener {
 	
 	private int getPlayerCount()
 	{
-		return CompatibilityUtil.getPlayerList().size();
+		return PlayerVisibilityUtil.getPlayerList().size();
 	}
 	
 	@SubscribeEvent
 	public void onServerMessage(ServerChatEvent event)
 	{
 		try {
-			String message = MessageManager.M_FORMAT_DISCORD.format(event.getPlayer().getDisplayName().getString(), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
+			String message = MessageManager.M_FORMAT_DISCORD.format(MessageUtil.clearFormatting(event.getPlayer().getDisplayName().getString()), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
 			this.sendTextMessage(message);
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -154,7 +142,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	@SubscribeEvent
 	public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event)
 	{
-		if(CompatibilityUtil.isPlayerVisible(event.getPlayer()))
+		if(PlayerVisibilityUtil.isPlayerVisible(event.getPlayer()))
 			fakePlayerJoin(event.getPlayer());
 	}
 	
@@ -172,7 +160,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	@SubscribeEvent
 	public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event)
 	{
-		if(CompatibilityUtil.isPlayerVisible(event.getPlayer()))
+		if(PlayerVisibilityUtil.isPlayerVisible(event.getPlayer()))
 			fakePlayerLeave(event.getPlayer(), true);
 	}
 	
@@ -207,7 +195,7 @@ public class ChatMessageListener extends SingleChannelListener {
 	public void onAchievementGet(AdvancementEvent ev)
 	{
 		try {
-			if(ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat() && CompatibilityUtil.isPlayerVisible(ev.getPlayer()))
+			if(ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat() && PlayerVisibilityUtil.isPlayerVisible(ev.getPlayer()))
 			{
 				this.sendTextMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getPlayer().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
 			}

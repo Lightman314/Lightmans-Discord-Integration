@@ -1,5 +1,6 @@
 package io.github.lightman314.lightmansconsole.util;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,12 +8,13 @@ import javax.annotation.Nullable;
 
 import io.github.lightman314.lightmansconsole.LDIConfig;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.minecraft.ChatFormatting;
 
 public class MessageUtil {
 
@@ -20,25 +22,25 @@ public class MessageUtil {
 	{
 		if(channel == null)
 			return;
-		
+
 		splitMessage(message).forEach(val -> {
 			if(!val.isEmpty())
 				channel.sendMessage(val).queue();
 		});
-		
+
 	}
-	
+
 	public static void sendTextMessage(MessageChannel channel, List<String> messages)
 	{
 		if(channel == null)
 			return;
-		
+
 		combineMessages(messages).forEach(val -> {
 			if(!val.isEmpty())
 				channel.sendMessage(val).queue();
 		});
 	}
-	
+
 	public static void sendPrivateMessage(User user, String message)
 	{
 		user.openPrivateChannel().queue((channel) ->{
@@ -48,7 +50,7 @@ public class MessageUtil {
 			});
 		});
 	}
-	
+
 	public static void sendPrivateMessage(User user, List<String> messages)
 	{
 		user.openPrivateChannel().queue((channel) ->{
@@ -58,7 +60,7 @@ public class MessageUtil {
 			});
 		});
 	}
-	
+
 	public static List<String> splitMessage(final String message)
 	{
 		List<String> output = new ArrayList<>();
@@ -70,43 +72,57 @@ public class MessageUtil {
 		else
 		{
 			String[] split = message.split("\n");
-			String bufferString = "";
+			StringBuilder bufferString = new StringBuilder();
 			for(String s : split)
 			{
 				if((bufferString + s + "\n").length() > 2000)
 				{
-					output.add(bufferString);
-					bufferString = s + "\n";
+					output.add(bufferString.toString());
+					bufferString = new StringBuilder(s + "\n");
 				}
 				else
-					bufferString += s + "\n";
+					bufferString.append(s).append("\n");
 			}
-			output.add(bufferString);
+			output.add(bufferString.toString());
 		}
 		return output;
 	}
-	
+
 	public static List<String> combineMessages(final List<String> messages)
 	{
 		List<String> output = new ArrayList<>();
 		if(messages.size() < 2)
 			return messages;
-		String bufferString = "";
+		StringBuilder bufferString = new StringBuilder();
 		for(String s : messages)
 		{
 			if((bufferString + "\n" + s).length() > 2000)
 			{
-				output.add(bufferString);
-				bufferString = s + "\n";
+				output.add(bufferString.toString());
+				bufferString = new StringBuilder(s + "\n");
 			}
 			else
-				bufferString += s + "\n";
+				bufferString.append(s).append("\n");
 		}
-		output.add(bufferString);
-		
+		output.add(bufferString.toString());
+
 		return output;
 	}
-	
+
+
+	public static String clearFormatting(String message) {
+		StringWriter result = new StringWriter();
+		for(int i = 0; i < message.length(); ++i)
+		{
+			char c = message.charAt(i);
+			if(c == ChatFormatting.PREFIX_CODE)
+				i++; //Skip this char, and the following char
+			else
+				result.append(c);
+		}
+		return result.toString();
+	}
+
 	/**
 	 * Formats a minecraft message to convert @discordUser @discordRole & #channelName into appropriate ping formats.
 	 * @param minecraftMessage The message the player typed into the chat box.
@@ -125,7 +141,7 @@ public class MessageUtil {
 		{
 			int indexof = minecraftMessage.substring(indexOffset).indexOf('@') + indexOffset;
 			indexOffset = indexof + 1;
-			//Get the front & back of the message that ignores the 
+			//Get the front & back of the message that ignores the
 			String firstHalf = minecraftMessage.substring(0, indexof);
 			String[] splitText = minecraftMessage.substring(indexOffset).split(" ", 2);
 			String secondHalf = "";
@@ -137,7 +153,7 @@ public class MessageUtil {
 			String pingDiscriminator = "";
 			if(splitPing.length > 1)
 				pingDiscriminator = splitPing[1];
-			
+
 			Member foundMember = null;
 			//Search through members by effective name
 			List<Member> members = guild.getMembersByEffectiveName(pingName, true);
@@ -161,7 +177,7 @@ public class MessageUtil {
 					}
 				}
 			}
-			
+
 			if(foundMember != null)
 			{
 				minecraftMessage = firstHalf + "<@!" + foundMember.getId() + ">" + secondHalf;
@@ -176,28 +192,28 @@ public class MessageUtil {
 					if(roles.get(i).getName().equals(pingName))
 						foundRole = roles.get(i);
 				}
-				
+
 				if(foundRole != null)
 				{
 					minecraftMessage = firstHalf + "<@&" + foundRole.getId() + ">" + secondHalf;
 					indexOffset += foundRole.getId().length();
 				}
 			}
-			
+
 		}
 		indexOffset = 0;
 		while(minecraftMessage.substring(indexOffset).contains("#"))
 		{
 			int indexof = minecraftMessage.substring(indexOffset).indexOf('#') + indexOffset;
 			indexOffset = indexof + 1;
-			//Get the front & back of the message that ignores the 
+			//Get the front & back of the message that ignores the
 			String firstHalf = minecraftMessage.substring(0, indexof);
 			String[] splitText = minecraftMessage.substring(indexOffset).split(" ", 2);
 			String secondHalf = "";
 			if(splitText.length > 1)
 				secondHalf = " " + splitText[1];
 			String channelName = splitText[0];
-			
+
 			List<GuildChannel> channels = guild.getChannels();
 			GuildChannel foundChannel = null;
 			for(int i = 0; i < channels.size() && foundChannel == null; i++)
@@ -213,7 +229,7 @@ public class MessageUtil {
 		}
 		return minecraftMessage;
 	}
-	
+
 	/**
 	 * Decodes a discord message into a text component format to be sent in minecraft's chat.
 	 * @param message The discord message to convert.
@@ -223,7 +239,7 @@ public class MessageUtil {
 	public static String formatMessageText(Message message, Guild guild)
 	{
 		String rawMessage = message.getContentRaw();
-		String messageText = "";
+		StringBuilder messageText = new StringBuilder();
 		int currentModifier = 0;
 		for(int i = 0; i < rawMessage.length(); i++)
 		{
@@ -233,52 +249,52 @@ public class MessageUtil {
 				if(currentModifier == 3)
 				{
 					currentModifier = 0;
-					messageText += "§r";
+					messageText.append(ChatFormatting.PREFIX_CODE + "r");
 					i += 2;
 				}
 				else if(partialMessage.substring(1).contains("***") && currentModifier == 0)
 				{
 					currentModifier = 3;
-					messageText += "§l§o";
+					messageText.append(ChatFormatting.PREFIX_CODE + "l" + ChatFormatting.PREFIX_CODE + "o");
 					i += 2;
 				}
 				else
-					messageText += partialMessage.charAt(0);
+					messageText.append(partialMessage.charAt(0));
 			}
 			else if(partialMessage.startsWith("**"))
 			{
 				if(currentModifier == 2)
 				{
 					currentModifier = 0;
-					messageText += "§r";
+					messageText.append(ChatFormatting.PREFIX_CODE + "r");
 					i++;
 				}
 				else if(partialMessage.substring(1).contains("**") && currentModifier == 0)
 				{
 					currentModifier = 2;
-					messageText += "§l";
+					messageText.append(ChatFormatting.PREFIX_CODE + "l");
 					i++;
 				}
 				else
-					messageText += partialMessage.charAt(0);
+					messageText.append(partialMessage.charAt(0));
 			}
 			else if(partialMessage.startsWith("*"))
 			{
 				if(currentModifier == 1)
 				{
 					currentModifier = 0;
-					messageText += "§r";
+					messageText.append(ChatFormatting.PREFIX_CODE + "r");
 				}
 				else if(partialMessage.substring(1).contains("*") && currentModifier == 0)
 				{
 					currentModifier = 1;
-					messageText += "§o";
+					messageText.append(ChatFormatting.PREFIX_CODE + "o");
 				}
 				else
-					messageText += partialMessage.charAt(0);
+					messageText.append(partialMessage.charAt(0));
 			}
 			else
-				messageText += partialMessage.charAt(0);
+				messageText.append(partialMessage.charAt(0));
 		}
 		//Check for pings, etc
 		if(guild != null)
@@ -297,7 +313,7 @@ public class MessageUtil {
 					String endText = "";
 					if(endIndex < messageText.length())
 						endText = messageText.substring(endIndex + 1);
-					
+
 					//Process the middle portion
 					if(processText.startsWith("<@&"))
 					{
@@ -305,7 +321,7 @@ public class MessageUtil {
 						Role foundRole = guild.getRoleById(roleId);
 						if(foundRole != null)
 						{
-							messageText = frontText + "@" + foundRole.getName() + endText;
+							messageText = new StringBuilder(frontText + "@" + foundRole.getName() + endText);
 						}
 					}
 					else if(processText.startsWith("<@"))
@@ -314,7 +330,7 @@ public class MessageUtil {
 						Member foundMember = MemberUtil.getMemberFromPing(guild, processText);
 						if(foundMember != null)
 						{
-							messageText = frontText + "@" + foundMember.getEffectiveName() + endText;
+							messageText = new StringBuilder(frontText + "@" + foundMember.getEffectiveName() + endText);
 						}
 					}
 					else if(processText.startsWith("<#"))
@@ -323,16 +339,16 @@ public class MessageUtil {
 						GuildChannel foundChannel = guild.getGuildChannelById(channelId);
 						if(foundChannel != null)
 						{
-							messageText = frontText + "#" + foundChannel.getName() + endText;
+							messageText = new StringBuilder(frontText + "#" + foundChannel.getName() + endText);
 						}
 					}
-					
+
 				}
-				
+
 			}
 		}
-		
-		return messageText;
+
+		return messageText.toString();
 	}
-	
+
 }

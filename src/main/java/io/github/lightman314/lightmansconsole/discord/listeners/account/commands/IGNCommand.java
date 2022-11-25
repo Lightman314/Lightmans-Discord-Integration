@@ -22,7 +22,7 @@ public class IGNCommand extends AccountCommand{
 	}
 
 	@Override
-	public List<String> runCommand(String input, LinkedAccount account, Guild guild, List<String> output) {
+	public void runCommand(String input, LinkedAccount account, Guild guild, List<String> output) {
 		
 		String subcommand = input.substring(this.literal.length());
 		Member member = MemberUtil.getMemberFromPing(guild, subcommand);
@@ -42,7 +42,6 @@ public class IGNCommand extends AccountCommand{
 		{
 			output.add(this.cannotGetUserFromPingError());
 		}
-		return output;
 	}
 	
 	

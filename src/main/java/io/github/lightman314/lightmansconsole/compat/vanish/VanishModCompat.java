@@ -1,5 +1,6 @@
-package io.github.lightman314.lightmansconsole.compat;
+package io.github.lightman314.lightmansconsole.compat.vanish;
 
+import io.github.lightman314.lightmansconsole.compat.PlayerVisibilityUtil;
 import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
@@ -11,7 +12,7 @@ public class VanishModCompat {
 
 	public static void init() {
 		MinecraftForge.EVENT_BUS.register(VanishModCompat.class);
-		CompatibilityUtil.addPlayerListFilter(VanishUtil::isVanished);
+		PlayerVisibilityUtil.addPlayerHideFilter(VanishModCompat::isVanished);
 	}
 	
 	public static boolean isVanished(Player player) {

@@ -19,8 +19,6 @@ public abstract class AccountCommand {
 	public final boolean requiresLinkedAccount;
 	private final boolean requiresAdmin;
 	public final boolean canRun(boolean isAdmin) { return isAdmin || !requiresAdmin; }
-	private Supplier<JDA> jdaSource;
-	private Supplier<String> prefixSource;
 	
 	protected AccountCommand(String literal, boolean requiresLinkedAccount, boolean requiresAdmin)
 	{
@@ -29,18 +27,9 @@ public abstract class AccountCommand {
 		this.requiresAdmin = requiresAdmin;
 	}
 	
-	public void setup(Supplier<JDA> jdaSource, Supplier<String> prefixSource)
-	{
-		this.jdaSource = jdaSource;
-		this.prefixSource = prefixSource;
-	}
-	
-	protected final JDA getJDA() { return jdaSource.get(); }
-	protected final String getPrefix() { return prefixSource.get(); }
-	
 	public abstract void addToHelpText(List<String> output, String prefix);
 	
-	public abstract List<String> runCommand(String input, @Nullable LinkedAccount account, Guild guild, List<String> output);
+	public abstract void runCommand(String input, @Nullable LinkedAccount account, Guild guild, List<String> output);
 	
 	public String accountNotLinkedErrorSelf()
 	{

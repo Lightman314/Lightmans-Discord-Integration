@@ -20,11 +20,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.NotNull;
 
 public class ConsoleMessageListener extends SingleChannelListener implements CommandSource{
 
 	MinecraftServer server = null;
-	CommandSourceStack commandSource = null;
 	List<String> output = new ArrayList<>();
 	
 	
@@ -32,7 +32,6 @@ public class ConsoleMessageListener extends SingleChannelListener implements Com
 	{
 		super(consoleChannel, LightmansDiscordIntegration.PROXY::getJDA);
 		this.server = ServerLifecycleHooks.getCurrentServer();
-		this.commandSource = this.getCommandSource();
 		this.sendTextMessage(MessageManager.M_CONSOLEBOT_READY.get());
 	}
 	
@@ -47,16 +46,16 @@ public class ConsoleMessageListener extends SingleChannelListener implements Com
 		String prefix = LDIConfig.SERVER.consoleCommandPrefix.get();
 		if(command.startsWith(prefix))
 		{
-			command = command.substring(prefix.length(), command.length());
+			command = command.substring(prefix.length());
 			if(command.startsWith("mchelp")) //Manual replacement of mchelp with help
-				command = command.substring(2, command.length());
+				command = command.substring(2);
 			//LightmansConsole.LOGGER.info("Received Command: '" + command + "'");
 			if(server == null)
 				LightmansDiscordIntegration.LOGGER.error("Server is null!");
 			else
 			{
 				this.output.clear();
-				server.getCommands().performCommand(commandSource, command);
+				server.getCommands().performCommand(this.getCommandSource(), command);
 				this.sendTextMessage(this.output);
 			}
 		}
@@ -64,12 +63,12 @@ public class ConsoleMessageListener extends SingleChannelListener implements Com
 	
 	private CommandSourceStack getCommandSource()
 	{
-		ServerLevel world = server.overworld();
-		return new CommandSourceStack(this, world == null ? Vec3.ZERO : Vec3.atBottomCenterOf(world.getSharedSpawnPos()), Vec2.ZERO, world, 4, "ConsoleBot", new TextComponent("ConsoleBot"), server, null);
+		ServerLevel world = this.server.overworld();
+		return new CommandSourceStack(this, Vec3.atBottomCenterOf(world.getSharedSpawnPos()), Vec2.ZERO, world, 4, "ConsoleBot", new TextComponent("ConsoleBot"), server, null);
 	}
 
 	@Override
-	public void sendMessage(Component component, UUID senderUUID) {
+	public void sendMessage(Component component, @NotNull UUID senderUUID) {
 		this.output.add(component.getString());
 	}
 

@@ -17,7 +17,7 @@ public class ServerProxy extends Proxy{
 	
 	private static JDA jda;
 	
-	private static List<Object> pendingListeners = new ArrayList<>();
+	private static final List<Object> pendingListeners = new ArrayList<>();
 	
 	static boolean initialized = false;
 	
@@ -38,13 +38,13 @@ public class ServerProxy extends Proxy{
     	LightmansDiscordIntegration.LOGGER.info("Attempting to build the JDA.");
     	JDABuilder builder = JDABuilder.createDefault(token);
     	builder.setAutoReconnect(true);
-    	builder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.GUILD_EMOJIS);
+		builder.setEnabledIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_EMOJIS_AND_STICKERS, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.SCHEDULED_EVENTS);
     	builder.setMemberCachePolicy(MemberCachePolicy.ALL);
     	builder.setChunkingFilter(ChunkingFilter.ALL);
     	jda = builder.build();
     	
     	//Add the pending listeners
-    	pendingListeners.forEach(listener -> this.addListener(listener));
+    	pendingListeners.forEach(this::addListener);
     	pendingListeners.clear();
     	
     	//Wait until the jda is ready

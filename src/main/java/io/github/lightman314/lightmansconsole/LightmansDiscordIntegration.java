@@ -15,7 +15,7 @@ import net.minecraftforge.network.NetworkConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import io.github.lightman314.lightmansconsole.compat.VanishModCompat;
+import io.github.lightman314.lightmansconsole.compat.vanish.VanishModCompat;
 import io.github.lightman314.lightmansconsole.events.CreateMessageEntriesEvent;
 import io.github.lightman314.lightmansconsole.events.JDAInitializedEvent;
 import io.github.lightman314.lightmansconsole.message.MessageManager;
@@ -32,9 +32,6 @@ public class LightmansDiscordIntegration
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger();
     public static final Proxy PROXY = DistExecutor.safeRunForDist(() -> Proxy::new, () -> ServerProxy::new);
-
-    private static boolean isVanishmodLoaded = false;
-    public static boolean isVanishmodLoaded() { return isVanishmodLoaded; }
     
     public LightmansDiscordIntegration() {
         // Register the setup methods
@@ -51,9 +48,7 @@ public class LightmansDiscordIntegration
         MinecraftForge.EVENT_BUS.register(this);
         
         //Check if the vanish mod is installed
-        isVanishmodLoaded = ModList.get().isLoaded("vmod");
-
-        if(isVanishmodLoaded)
+        if(ModList.get().isLoaded("vmod"))
         {
         	VanishModCompat.init();
         	LOGGER.info("Vanish mod detected. Vanish mod compatibility enabled.");

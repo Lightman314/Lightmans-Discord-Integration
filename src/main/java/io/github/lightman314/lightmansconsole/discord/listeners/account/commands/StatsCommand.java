@@ -35,7 +35,7 @@ public class StatsCommand extends AccountCommand{
 	}
 	
 	@Override
-	public List<String> runCommand(String commandInput, LinkedAccount account, Guild guild, List<String> output) {
+	public void runCommand(String commandInput, LinkedAccount account, Guild guild, List<String> output) {
 		
 		if(commandInput.length() > this.literal.length())
 		{
@@ -49,14 +49,9 @@ public class StatsCommand extends AccountCommand{
 					LinkedAccount a = AccountManager.getLinkedAccountFromMember(member);
 					if(a != null)
 					{
-						if(commandContext.length() > commandContext.indexOf('>'))
-						{
-							//Type defined
-							String type = commandContext.substring(commandContext.indexOf('>') + 2).toLowerCase();
-							this.getStatsForPlayerID(a.playerID, type, output);
-						}
-						else //No type defined
-							this.getStatsForPlayerID(a.playerID, "", output);
+						//Type defined
+						String type = commandContext.substring(commandContext.indexOf('>') + 2).toLowerCase();
+						this.getStatsForPlayerID(a.playerID, type, output);
 					}
 					else
 						output.add(this.accountNotLinkedErrorForMember(member));
@@ -81,7 +76,6 @@ public class StatsCommand extends AccountCommand{
 		}
 		else //Throw an error for self if no account was given
 			output.add(this.accountNotLinkedErrorSelf());
-		return output;
 	}
 	
 	private void getStatsForPlayerID(UUID playerId, String type, List<String> output)
@@ -95,19 +89,14 @@ public class StatsCommand extends AccountCommand{
 			fakePlayer.remove(RemovalReason.DISCARDED);
 			ServerStatsCounter statsManager = server.getPlayerList().getPlayerStats(fakePlayer);
 			AtomicReference<String> typeName = new AtomicReference<>(type.toLowerCase());
-			if(statsManager != null)
-			{
-				this.getAllStats().forEach(thisStat ->{
-					if(thisStat.getName().toLowerCase().contains(typeName.get()))
-					{
-						int value = statsManager.getValue(thisStat);
-						if(value > 0)
-							output.add(thisStat.getName() + ": " + value);
-					}
-				});
-			}
-			else
-				output.add("**ERROR**: Could not get the statistics of the linked user!");
+			this.getAllStats().forEach(thisStat ->{
+				if(thisStat.getName().toLowerCase().contains(typeName.get()))
+				{
+					int value = statsManager.getValue(thisStat);
+					if(value > 0)
+						output.add(thisStat.getName() + ": " + value);
+				}
+			});
 		}
 		else
 			output.add("**ERROR**: Could not get game profile of the linked user!");

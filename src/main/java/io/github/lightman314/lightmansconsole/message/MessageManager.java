@@ -196,10 +196,8 @@ public class MessageManager {
 			writer.println("#Type \\n for a new line. Some messages will have optional inputs surrounded by {} to be filled in with various data.");
 			writer.println("#Each message should list the optional inputs, and what they'll be replaced by.");
 			writer.println();
-			
-			for(int i = 0; i < ENTRIES.size(); ++i)
-			{
-				MessageEntry entry = ENTRIES.get(i);
+
+			for (MessageEntry entry : ENTRIES) {
 				List<String> commentLines = Lists.newArrayList(entry.comment.split("\n"));
 				commentLines.forEach(comment -> writer.println("#" + comment));
 				writer.println(entry.key + "=" + entry.currentValue);
@@ -216,10 +214,9 @@ public class MessageManager {
 
 	private static MessageEntry getEntry(String key)
 	{
-		for(int i = 0; i < ENTRIES.size(); ++i)
-		{
-			if(ENTRIES.get(i).key.contentEquals(key))
-				return ENTRIES.get(i);
+		for (MessageEntry entry : ENTRIES) {
+			if (entry.key.contentEquals(key))
+				return entry;
 		}
 		return null;
 	}

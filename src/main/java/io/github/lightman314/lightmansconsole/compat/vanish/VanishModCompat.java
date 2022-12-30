@@ -1,5 +1,6 @@
 package io.github.lightman314.lightmansconsole.compat.vanish;
 
+import io.github.lightman314.lightmansconsole.LightmansDiscordIntegration;
 import io.github.lightman314.lightmansconsole.compat.PlayerVisibilityUtil;
 import io.github.lightman314.lightmansconsole.discord.listeners.chat.ChatMessageListener;
 import net.minecraft.world.entity.player.Player;
@@ -10,6 +11,8 @@ import redstonedubstep.mods.vanishmod.api.PlayerVanishEvent;
 
 public class VanishModCompat {
 
+	private static boolean loggedError = false;
+
 	public static void init() {
 		MinecraftForge.EVENT_BUS.register(VanishModCompat.class);
 		PlayerVisibilityUtil.addPlayerHideFilter(VanishModCompat::isVanished);
@@ -18,8 +21,12 @@ public class VanishModCompat {
 	public static boolean isVanished(Player player) {
 		try {
 			return VanishUtil.isVanished(player);
-		} catch(Exception e) {
-			e.printStackTrace();
+		} catch(Throwable t) {
+			if(!loggedError)
+			{
+				loggedError = true;
+				LightmansDiscordIntegration.LOGGER.error("Error found when check VanishMod for a players vanished status.\nVanishMod compatibility will not function!", t);
+			}
 			return false;
 		}
 	}

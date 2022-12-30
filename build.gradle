@@ -9,7 +9,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.19.3-0.1.0.0'
+version = '1.19.3-0.1.0.1'
 group = 'io.github.lightman314.lightmansconsole' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'lightmansdiscord'
 
@@ -112,7 +112,7 @@ dependencies {
         exclude group: 'okhttp3', module: "okhttp"
     }
     
-    compileOnly("curse.maven:vanishmod-423535:3908624")
+    compileOnly("curse.maven:vanishmod-423535:4215411")
 	
 }
 

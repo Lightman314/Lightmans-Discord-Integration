@@ -72,7 +72,7 @@ reobf {
 }
 
 shadowJar {
-    classifier = 'server'
+    archiveClassifier = 'server'
     configurations = [project.configurations.embed]
     relocate 'org.slf4j', 'ldishadow.org.slf4j'
     relocate 'okhttp3', 'ldishadow.okhttp'

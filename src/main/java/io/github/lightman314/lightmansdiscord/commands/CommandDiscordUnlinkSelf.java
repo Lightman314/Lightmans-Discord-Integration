@@ -1,5 +1,6 @@
 package io.github.lightman314.lightmansdiscord.commands;
 
+import com.google.common.base.Suppliers;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -31,7 +32,7 @@ public class CommandDiscordUnlinkSelf {
 		if(account != null)
 		{
 			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendSuccess(MessageManager.M_COMMAND_UNLINK_COMPLETE.formatComponent(account.getMemberName()), true);
+			commandContext.getSource().sendSuccess(Suppliers.ofInstance(MessageManager.M_COMMAND_UNLINK_COMPLETE.formatComponent(account.getMemberName())), true);
 			return 1;
 		}
 		else

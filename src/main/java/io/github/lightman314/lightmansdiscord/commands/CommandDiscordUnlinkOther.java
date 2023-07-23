@@ -33,7 +33,7 @@ public class CommandDiscordUnlinkOther {
 		if(account != null)
 		{
 			AccountManager.unlinkAccount(account);
-			commandContext.getSource().sendSuccess(Component.literal(playerName + " is no longer linked to their discord account."), true);
+			commandContext.getSource().sendSuccess(() -> Component.literal(playerName + " is no longer linked to their discord account."), true);
 			return 1;
 		}
 		else

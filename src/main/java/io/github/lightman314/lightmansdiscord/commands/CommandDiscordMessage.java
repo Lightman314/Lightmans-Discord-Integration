@@ -1,5 +1,6 @@
 package io.github.lightman314.lightmansdiscord.commands;
 
+import com.google.common.base.Suppliers;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -34,7 +35,7 @@ public class CommandDiscordMessage {
 		
 		ChatMessageListener.sendChatMessage(message);
 		
-		commandContext.getSource().sendSuccess(MessageManager.M_COMMAND_TELLDISCORD.formatComponent(message), true);
+		commandContext.getSource().sendSuccess(Suppliers.ofInstance(MessageManager.M_COMMAND_TELLDISCORD.formatComponent(message)), true);
 		
 		return 1;
 		

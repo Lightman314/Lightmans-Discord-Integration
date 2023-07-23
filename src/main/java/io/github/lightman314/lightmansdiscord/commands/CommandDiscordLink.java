@@ -1,5 +1,6 @@
 package io.github.lightman314.lightmansdiscord.commands;
 
+import com.google.common.base.Suppliers;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -37,11 +38,13 @@ public class CommandDiscordLink {
 		int output = AccountManager.tryLinkUser(player, linkKey);
 		if(output == 1)
 		{
-			String discordName = "ERROR";
+			String discordName;
 			LinkedAccount account = AccountManager.getLinkedAccountFromPlayer(player);
 			if(account != null)
 				discordName = account.getMemberName();
-			source.sendSuccess(MessageManager.M_COMMAND_LINK_COMPLETE.formatComponent(discordName), true);
+			else
+				discordName = "ERROR";
+			source.sendSuccess(Suppliers.ofInstance(MessageManager.M_COMMAND_LINK_COMPLETE.formatComponent(discordName)), true);
 			return 1;
 		}
 		else if(output == 0)

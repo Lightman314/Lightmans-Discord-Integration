@@ -26,7 +26,7 @@ public class CommandReloadMessages {
 	{
 		MessageManager.reload();
 		
-		commandContext.getSource().sendSuccess(Component.literal("Messages have been reloaded from file."), true);
+		commandContext.getSource().sendSuccess(() -> Component.literal("Messages have been reloaded from file."), true);
 		
 		return 1;
 		

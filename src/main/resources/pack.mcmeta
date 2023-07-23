@@ -1,6 +1,8 @@
 {
-    "pack": {
-        "description": "lightmans discord integration resources",
-        "pack_format": 9
-    }
+  "pack": {
+    "description": {
+      "text": "${mod_id} resources"
+    },
+    "pack_format": 15
+  }
 }

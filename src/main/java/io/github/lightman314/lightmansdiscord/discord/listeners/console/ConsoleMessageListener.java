@@ -26,7 +26,8 @@ import javax.annotation.Nonnull;
 
 public class ConsoleMessageListener extends SafeSingleChannelListener implements CommandSource{
 
-	MinecraftServer server;
+	MinecraftServer server = null;
+	protected final void checkForServer() { if(this.server == null) this.server = ServerLifecycleHooks.getCurrentServer(); }
 	List<String> output = new ArrayList<>();
 
 	public static ConsoleMode getMode() { return ConsoleMode.COMMANDS_ONLY; }
@@ -34,7 +35,6 @@ public class ConsoleMessageListener extends SafeSingleChannelListener implements
 	public ConsoleMessageListener(Supplier<String> consoleChannel)
 	{
 		super(consoleChannel);
-		this.server = ServerLifecycleHooks.getCurrentServer();
 		if(getMode().acceptCommands)
 			this.sendMessage(MessageManager.M_CONSOLEBOT_READY.get());
 		this.createLogAppender();
@@ -47,8 +47,8 @@ public class ConsoleMessageListener extends SafeSingleChannelListener implements
 
 	@Override
 	protected void OnTextChannelMessage(SafeMemberReference member, SafeMessageReference message) {
-		//LightmansConsole.LOGGER.info("ConsoleMessageListener.onMessageReceived");
-		if(member.isBot())
+		LightmansDiscordIntegration.LOGGER.debug("Received message '" + message.getRaw() + "' in console channel!\nCommand Prefix is '" + LDIConfig.SERVER.consoleCommandPrefix.get() + "', and " + (message.getRaw().startsWith(LDIConfig.SERVER.consoleCommandPrefix.get()) ? "does" : "does not") + " match!");
+		if(member == null || member.isBot())
 			return;
 		if(!getMode().acceptCommands)
 			return;
@@ -60,8 +60,9 @@ public class ConsoleMessageListener extends SafeSingleChannelListener implements
 			command = command.substring(prefix.length());
 			if(command.startsWith("mchelp")) //Manual replacement of mchelp with help
 				command = command.substring(2);
-			//LightmansConsole.LOGGER.info("Received Command: '" + command + "'");
-			if(server == null)
+			LightmansDiscordIntegration.LOGGER.info("Received Command: '" + command + "' from Discord!");
+			this.checkForServer();
+			if(this.server == null)
 				LightmansDiscordIntegration.LOGGER.error("Server is null!");
 			else
 			{

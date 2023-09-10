@@ -49,7 +49,7 @@ public class AccountMessageListener extends SafeMultiChannelListener implements 
 
 	@Override
 	protected void OnMessage(SafeMessageChannelReference channel, SafeUserReference user, SafeMessageReference message, MessageType type) {
-		if(user.isBot() || type != MessageType.GUILD || !(channel instanceof SafeTextChannelReference textchannel))
+		if(user == null || user.isBot() || type != MessageType.GUILD || !(channel instanceof SafeTextChannelReference textchannel))
 			return;
 
 		boolean isAdmin = isAdmin(user);

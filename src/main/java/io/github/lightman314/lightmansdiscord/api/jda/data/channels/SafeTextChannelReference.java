@@ -12,9 +12,9 @@ public class SafeTextChannelReference extends SafeMessageChannelReference {
     private final TextChannel channel;
     private SafeTextChannelReference(TextChannel channel) { super(channel); this.channel = channel; }
     @Nullable
-    public static SafeTextChannelReference of(TextChannel channel) { if(channel != null) return new SafeTextChannelReference(channel); return null; }
+    public static SafeTextChannelReference of(@Nullable TextChannel channel) { if(channel != null) return new SafeTextChannelReference(channel); return null; }
     @Nullable
-    public static SafeTextChannelReference of(MessageChannelUnion channel) { if(channel instanceof TextChannel tc) return of(tc); return null; }
+    public static SafeTextChannelReference of(@Nullable MessageChannelUnion channel) { if(channel instanceof TextChannel tc) return of(tc); return null; }
 
     public final void setTopic(String topic) { this.channel.getManager().setTopic(topic).queue(); }
 

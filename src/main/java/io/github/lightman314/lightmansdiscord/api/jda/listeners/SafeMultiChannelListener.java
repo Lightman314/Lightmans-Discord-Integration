@@ -8,8 +8,8 @@ import io.github.lightman314.lightmansdiscord.api.jda.data.messages.SafeMessageR
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +55,7 @@ public abstract class SafeMultiChannelListener extends ListenerAdapter {
     protected enum MessageType { UNKNOWN, GUILD, PRIVATE }
 
     @Override
-    public final void onMessageReceived(@NotNull MessageReceivedEvent event)
+    public final void onMessageReceived(@Nonnull MessageReceivedEvent event)
     {
         if(canListenToChannel(event.getChannel().getId()))
         {

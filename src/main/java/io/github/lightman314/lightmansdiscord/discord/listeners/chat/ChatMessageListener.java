@@ -53,7 +53,8 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 
 	@Override
 	protected void OnTextChannelMessage(SafeMemberReference member, SafeMessageReference message) {
-
+		if(member == null)
+			return;
 		if(member.isBot())
 		{
 			//If bot is allowed, send message to players
@@ -69,11 +70,13 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		{
 			List<String> output = new ArrayList<>();
 			List<ServerPlayer> playerList = PlayerVisibilityUtil.getPlayerList();
-			output.add("There are " + playerList.size() + " players online.");
+			String intro = MessageManager.M_PLAYER_LIST.format(playerList.size());
+			if(intro.length() > 0)
+				output.add(intro);
 			StringBuilder playerText = new StringBuilder();
 			for(ServerPlayer player : playerList)
 			{
-				if(!playerText.toString().equals(""))
+				if(playerText.length() > 0)
 					playerText.append(", ");
 				playerText.append(player.getName().getString());
 			}
@@ -108,15 +111,9 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		return shrink ? this.getPlayerCount() - 1 : this.getPlayerCount();
 	}
 	
-	private int getPlayerLimit()
-	{
-		return ServerLifecycleHooks.getCurrentServer().getMaxPlayers();
-	}
+	private int getPlayerLimit() { return ServerLifecycleHooks.getCurrentServer().getMaxPlayers(); }
 	
-	private int getPlayerCount()
-	{
-		return PlayerVisibilityUtil.getPlayerList().size();
-	}
+	private int getPlayerCount() { return PlayerVisibilityUtil.getPlayerList().size(); }
 	
 	@SubscribeEvent
 	public void onServerMessage(ServerChatEvent event)
@@ -180,7 +177,6 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 	}
 	
 	@SubscribeEvent
-	@SuppressWarnings("deprecation")
 	public void onAchievementGet(AdvancementEvent.AdvancementEarnEvent ev)
 	{
 		try {

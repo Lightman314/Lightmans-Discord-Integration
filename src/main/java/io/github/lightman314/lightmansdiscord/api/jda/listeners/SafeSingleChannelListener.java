@@ -19,11 +19,11 @@ import java.util.Objects;
 
 public abstract class SafeSingleChannelListener extends ListenerAdapter {
 
-    private final Supplier<String> channelID;
+    private final Supplier<? extends String> channelID;
 
     protected boolean listenToPrivateMessages() { return false; }
 
-    protected SafeSingleChannelListener(@Nonnull Supplier<String> channelID) { this.channelID = channelID; }
+    protected SafeSingleChannelListener(@Nonnull Supplier<? extends String> channelID) { this.channelID = channelID; }
 
     @Nullable
     public final SafeTextChannelReference getChannel() { return JDAUtil.getTextChannel(this.channelID.get()); }

@@ -4,13 +4,15 @@ import io.github.lightman314.lightmansdiscord.api.jda.data.messages.SafeMessageH
 import io.github.lightman314.lightmansdiscord.util.MessageUtil;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class SafeMessageChannelReference {
 
     private final MessageChannel channel;
     protected SafeMessageChannelReference(MessageChannel channel) { this.channel = channel; }
-    public static SafeMessageChannelReference of(MessageChannel channel) { if(channel != null) return new SafeMessageChannelReference(channel); return null; }
+    @Nullable
+    public static SafeMessageChannelReference of(@Nullable MessageChannel channel) { if(channel != null) return new SafeMessageChannelReference(channel); return null; }
 
     public final String getID() { return this.channel.getId(); }
 

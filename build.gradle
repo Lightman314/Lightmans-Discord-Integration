@@ -65,6 +65,9 @@ dependencies {
     //VanishMod compat
     compileOnly("curse.maven:vanishmod-423535:4610970")
 
+    //Kotlin for Forge
+    implementation("curse.maven:kotlin-for-forge-351264:4630525")
+
     //Discord libraries
     implementation jarJar(group: "net.dv8tion", name:"JDA", version: "[5.0.0-beta.12,)")
     jarJar(group: "org.apache.commons", name: "commons-collections4", version: "[4.4,)") { jarJar.pin(it,"4.4") }
@@ -72,10 +75,11 @@ dependencies {
     jarJar(group: "com.fasterxml.jackson.core", name: "jackson-core", version: "[2.14.1,)") { jarJar.pin(it, "2.14.1") }
     jarJar(group: "com.fasterxml.jackson.core", name: "jackson-databind", version: "[2.14.1,)") { jarJar.pin(it, "2.14.1") }
     //jarJar(group: "net.java.dev.jna", name:"jna", version: "[5.12.1,)") { jarJar.pin(it,"5.12.1") }
-    jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib", version: "[1.6.20,)") { jarJar.pin(it,"1.6.20") }
-    jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-common", version: "[1.6.20,)") { jarJar.pin(it,"1.6.20") }
-    jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk7", version: "[1.5.31,)") { jarJar.pin(it,"1.5.31") }
-    jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "[1.5.31,)") { jarJar.pin(it,"1.5.31") }
+    //Use Kotlin for Forge instead of default kotlin requirements
+    //jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib", version: "[1.6.20,)") { jarJar.pin(it,"1.6.20") }
+    //jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-common", version: "[1.6.20,)") { jarJar.pin(it,"1.6.20") }
+    //jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk7", version: "[1.5.31,)") { jarJar.pin(it,"1.5.31") }
+    //jarJar(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "[1.5.31,)") { jarJar.pin(it,"1.5.31") }
     jarJar(group: "com.neovisionaries", name: "nv-websocket-client", version: "[2.14,)") { jarJar.pin(it,"2.14") }
     jarJar(group: "com.squareup.okhttp3", name: "okhttp", version: "[4.10.0,)") { jarJar.pin(it,"4.10.0") }
     jarJar(group: "com.squareup.okio", name: "okio-jvm", version: "[3.0.0,)") { jarJar.pin(it,"3.0.0") }

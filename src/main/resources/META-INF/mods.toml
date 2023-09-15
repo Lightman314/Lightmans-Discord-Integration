@@ -1,12 +1,11 @@
 modLoader="javafml"
 loaderVersion="[35,)"
-license="All rights reserved"
+license="Apache License 2.0"
 [[mods]]
-# The modid of the mod
 modId="lightmansdiscord"
 version="${file.jarVersion}"
 displayName="Lightmans Discord Integration"
-#logoFile="examplemod.png"
+logoFile="ldi.png"
 #credits="Thanks for this example mod goes to Java"
 authors="Lightman314"
 description='''
@@ -26,3 +25,9 @@ Allows users to run console commands via discord.
     versionRange="[1.19,1.20)"
     ordering="NONE"
     side="BOTH"
+[[dependencies.lightmansdiscord]]
+	modId="kotlinforforge"
+	mandatory=true
+	versionRange="[4.1.0,)"
+	ordering="NONE"
+	side="SERVER"

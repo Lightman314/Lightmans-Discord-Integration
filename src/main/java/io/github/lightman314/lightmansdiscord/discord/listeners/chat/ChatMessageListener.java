@@ -16,6 +16,7 @@ import io.github.lightman314.lightmansdiscord.compat.PlayerVisibilityUtil;
 import io.github.lightman314.lightmansdiscord.message.MessageEntry;
 import io.github.lightman314.lightmansdiscord.message.MessageManager;
 import io.github.lightman314.lightmansdiscord.util.MessageUtil;
+import io.github.lightman314.lightmansdiscord.util.PlayerUtil;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -74,7 +75,7 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 			{
 				if(playerText.length() > 0)
 					playerText.append(", ");
-				playerText.append(player.getName().getString());
+				playerText.append(PlayerUtil.playerName(player));
 			}
 			if(playerText.length() > 0)
 				output.add(playerText.toString());
@@ -115,7 +116,7 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 	public void onServerMessage(ServerChatEvent event)
 	{
 		try {
-			String message = MessageManager.M_FORMAT_DISCORD.format(MessageUtil.clearFormatting(event.getPlayer().getDisplayName().getString()), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
+			String message = MessageManager.M_FORMAT_DISCORD.format(PlayerUtil.playerName(event.getPlayer()), MessageUtil.formatMinecraftMessage(event.getMessage(), this.getGuild()));
 			this.sendMessage(message);
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -131,7 +132,7 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		try {
 			if(instance != null)
 			{
-				Component playerName = player.getDisplayName();
+				String playerName = PlayerUtil.playerName(player);
 				instance.sendMessage(MessageManager.M_PLAYER_JOIN.format(new TranslatableComponent("multiplayer.player.joined", playerName), playerName));
 				instance.updatePlayerCount();
 			}
@@ -149,7 +150,7 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		try {
 			if(instance != null)
 			{
-				Component playerName = player.getDisplayName();
+				String playerName = PlayerUtil.playerName(player);
 				instance.sendMessage(MessageManager.M_PLAYER_LEAVE.format(new TranslatableComponent("multiplayer.player.left", playerName), playerName));
 				//Tell it to shrink the count by 1 as the leaving player is *technically* still online at this point in time.
 				instance.updatePlayerCount(shrinkPlayerCount);
@@ -163,11 +164,11 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		try {
 			if(event.getEntity() instanceof Player)
 			{
-				this.sendMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntity().getDisplayName()));
+				this.sendMessage(MessageManager.M_PLAYER_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), PlayerUtil.playerName(event.getEntity())));
 			}
 			else if(event.getEntity().hasCustomName() && LDIConfig.SERVER.postEntityDeaths.get())
 			{
-				this.sendMessage(MessageManager.M_ENTITY_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), event.getEntity().getDisplayName()));
+				this.sendMessage(MessageManager.M_ENTITY_DEATH.format(event.getSource().getLocalizedDeathMessage(event.getEntityLiving()), PlayerUtil.playerName(event.getEntity())));
 			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -178,7 +179,7 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		try {
 			if(ev.getAdvancement() != null && ev.getAdvancement().getDisplay() != null && ev.getAdvancement().getDisplay().shouldAnnounceChat() && PlayerVisibilityUtil.isPlayerVisible(ev.getPlayer()))
 			{
-				this.sendMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(ev.getEntity().getDisplayName(), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
+				this.sendMessage(MessageManager.M_PLAYER_ACHIEVEMENT.format(PlayerUtil.playerName(ev.getEntity()), ev.getAdvancement().getDisplay().getTitle(), ev.getAdvancement().getDisplay().getDescription()));
 			}
 		} catch(Exception e) { e.printStackTrace(); }
 	}
@@ -203,11 +204,9 @@ public class ChatMessageListener extends SafeSingleChannelListener {
 		} catch(Exception e) { e.printStackTrace(); }
 	}
 	
-	public static boolean isPresent() {
-		return instance != null;
-	}
+	public static boolean isPresent() { return instance != null; }
 	
-	public static void sendChatMessage(String message) 
+	public static void sendChatMessage(String message)
 	{
 		if(instance != null)
 			instance.sendMessage(message);

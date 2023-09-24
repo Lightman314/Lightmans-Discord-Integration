@@ -9,7 +9,7 @@ logoFile="ldi.png"
 #credits="Thanks for this example mod goes to Java"
 authors="Lightman314"
 description='''
-Allows users to run console commands via discord.
+Adds various Discord Integrations to your Minecraft Server!
 '''
 
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.

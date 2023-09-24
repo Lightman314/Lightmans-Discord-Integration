@@ -55,10 +55,7 @@ public class LightmansDiscordIntegration
        
     }
     
-    private void serverSetup(FMLDedicatedServerSetupEvent event)
-    {
-    	MessageManager.collectEntries();
-    }
+    private void serverSetup(FMLDedicatedServerSetupEvent event) { MessageManager.collectEntries(); }
     
     //Load the JDA after the config is loaded, to assure that we load the correct values
     private void onConfigLoad(ModConfigEvent.Loading event) {

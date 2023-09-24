@@ -11,6 +11,7 @@ import io.github.lightman314.lightmansdiscord.api.jda.data.SafeMemberReference;
 import io.github.lightman314.lightmansdiscord.api.jda.data.messages.SafeMessageReference;
 import io.github.lightman314.lightmansdiscord.api.jda.listeners.SafeSingleChannelListener;
 import io.github.lightman314.lightmansdiscord.message.MessageManager;
+import io.github.lightman314.lightmansdiscord.util.MessageUtil;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;

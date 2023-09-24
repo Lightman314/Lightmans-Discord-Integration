@@ -45,7 +45,7 @@ public class MessageUtil {
 
 	public static void sendPrivateMessage(User user, String message)
 	{
-		user.openPrivateChannel().queue((channel) -> splitMessage(message).forEach(val -> {
+		user.openPrivateChannel().queue((channel) -> splitMessage(clearFormatting(message)).forEach(val -> {
 			if(!val.isEmpty())
 				channel.sendMessage(val).queue();
 		}));
@@ -53,6 +53,7 @@ public class MessageUtil {
 
 	public static void sendPrivateMessage(User user, List<String> messages)
 	{
+		messages.replaceAll(MessageUtil::clearFormatting);
 		user.openPrivateChannel().queue((channel) -> combineMessages(messages).forEach(val -> {
 			if(!val.isEmpty())
 				channel.sendMessage(val).queue();

@@ -26,3 +26,7 @@ forge*changelog.txt
 changelog.txt
 changelog.txt
 README.txt
+
+#Custom
+Build Backups
+*.zip
